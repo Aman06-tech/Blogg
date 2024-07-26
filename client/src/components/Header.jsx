@@ -7,6 +7,8 @@ import { useSelector } from "react-redux";
 export default function Header() {
   const path = useLocation().pathname;
   const CurrentUser = useSelector((state) => state.user);
+  const user = CurrentUser.currentUser;
+
   return (
     <Navbar className="border-b-2">
       <Link
@@ -32,7 +34,7 @@ export default function Header() {
         <Button className="w-12 h-10 hidden sm:inline" color="gray" pill>
           <FaMoon />
         </Button>
-        {CurrentUser ? (
+        {user ? (
           <Dropdown
             arrowIcon={false}
             inline
@@ -40,6 +42,7 @@ export default function Header() {
               <Avatar alt="user" img={CurrentUser.profilePicture} rounded />
             }
           >
+
             <Dropdown.Header>
               <span className="block text-sm">@{CurrentUser.username}</span>
               <span className="block text-sm font-medium truncate">
@@ -50,7 +53,7 @@ export default function Header() {
               <Dropdown.Item>Profile</Dropdown.Item>
             </Link>
             <Dropdown.Divider />
-            <Dropdown.Item></Dropdown.Item>Sign Out
+            <Dropdown.Item>Sign Out</Dropdown.Item>
           </Dropdown>
         ) : (
           <Link to="sign-in">
@@ -73,5 +76,5 @@ export default function Header() {
         </Navbar.Link>
       </Navbar.Collapse>
     </Navbar>
-  );
+);
 }
