@@ -43,14 +43,14 @@ export default function Header() {
             arrowIcon={false}
             inline
             label={
-              <Avatar alt="user" img={CurrentUser.profilePicture} rounded />
+              <Avatar alt="user" img={user.profilePicture} rounded />
             }
           >
 
             <Dropdown.Header>
-              <span className="block text-sm">@{CurrentUser.username}</span>
+              <span className="block text-sm">@{user.username}</span>
               <span className="block text-sm font-medium truncate">
-                @{CurrentUser.email}
+                @{user.email}
               </span>
             </Dropdown.Header>
             <Link to={"/dashboard?tab=profile"}>
