@@ -14,12 +14,15 @@ import {
   updateStart,
   updateSuccess,
   updateFailure,
+  deleteUserStart,
+  deleteUserSuccess,
+  deleteUserFailure,
 } from "../redux/user/userSlice.js";
 import { useDispatch } from "react-redux";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function DashProfile() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser,error } = useSelector((state) => state.user);
   const [imageFile, setimageFile] = useState(null);
   const [imageFileUrl, setimageFileUrl] = useState(null);
   const [imageFileUploadProgress, setimageFileUploadProgress] = useState(null);
@@ -125,7 +128,23 @@ export default function DashProfile() {
       setUpdateUserError(error.message);
     }
   };
-  const handleDeleteUser = async () => {};
+  const handleDeleteUser = async () => {
+    setShowModal(false);
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`,{
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if(!res.ok){
+        dispatch(deleteUserFailure(data.message));
+      }else{
+        dispatch(deleteUserSuccess(data));
+      }
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
+    }
+  };
 
   return (
     <div className="max-w-lg mx-auto p-3 w-full ">
@@ -213,6 +232,11 @@ export default function DashProfile() {
       {updateUserError && (
         <Alert color="failure" className="mt-5">
           {updateUserError}
+        </Alert>
+      )}
+      {error && (
+        <Alert color="failure" className="mt-5">
+          {error}
         </Alert>
       )}
       <Modal
