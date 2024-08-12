@@ -40,7 +40,7 @@ export default function CreatePost() {
             Upload image
           </Button>
         </div>
-        <ReactQuill theme="snow" placeholder="Write your content" className="h-72 mb-12" required/>
+        <ReactQuill theme="snow" placeholder="Write your content" className="h-72 mb-12" req/>
         <Button type="submit" gradientDuoTone='purpleToPink' >Publish</Button>
       </form>
     </div>
