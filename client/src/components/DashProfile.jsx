@@ -164,6 +164,23 @@ export default function DashProfile() {
     }
   }
 
+  const handleToggleAdmin = async () => {
+    try {
+      const res = await fetch(`/api/user/toggle-admin/${currentUser._id}`, {
+        method: 'PUT',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        dispatch(updateSuccess(data));
+        setUpdateUserSuccess(`Admin status ${data.isAdmin ? 'enabled' : 'disabled'} successfully`);
+      } else {
+        setUpdateUserError(data.message);
+      }
+    } catch (error) {
+      setUpdateUserError(error.message);
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full ">
       <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
@@ -235,6 +252,17 @@ export default function DashProfile() {
         <Button type="submit" gradientDuoTone="purpleToBlue" outline="true" disabled={loading || imageFileUploading}>
           {loading ? 'loading...' : 'Update'}
         </Button>
+
+        {/* Admin Toggle Button */}
+        <Button
+          type="button"
+          gradientDuoTone={currentUser.isAdmin ? "pinkToOrange" : "purpleToPink"}
+          onClick={handleToggleAdmin}
+          className="w-full"
+        >
+          {currentUser.isAdmin ? 'Disable Admin Access' : 'Enable Admin Access'}
+        </Button>
+
         {
           currentUser.isAdmin && (
             <Link to={'/create-post'}>

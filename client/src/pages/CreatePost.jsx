@@ -12,6 +12,7 @@ import { app } from "../firebase";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function CreatePost() {
   const [file, setFile] = useState(null);
@@ -74,7 +75,8 @@ export default function CreatePost() {
     }
     if(res.ok){
       setPublishError(null);
-      navigate(`/post/${data.slug}`);
+      toast.success("Blog post published successfully!");
+      navigate("/");
     }
   }catch(error){
     setPublishError("Something went wrong");
