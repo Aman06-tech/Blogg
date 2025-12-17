@@ -2,23 +2,60 @@ import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
+import { motion } from "framer-motion";
+import { HiUser, HiMail, HiLockClosed } from "react-icons/hi";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
+    // Clear validation error for this field
+    setValidationErrors({ ...validationErrors, [e.target.id]: '' });
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.username) {
+      errors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters';
+    } else if (formData.username.length > 20) {
+      errors.username = 'Username must not exceed 20 characters';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      errors.username = 'Username can only contain letters, numbers, and underscores';
+    }
+
+    if (!formData.email) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'Email is invalid';
+    }
+
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(formData.password)) {
+      errors.password = 'Password must include uppercase, lowercase, number, and special character';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.username || !formData.email || !formData.password) {
-      return setErrorMessage("Please fill all the fields");
+
+    if (!validateForm()) {
+      return;
     }
-    
+
     try {
       setLoading(true);
       setErrorMessage(null);
@@ -27,13 +64,15 @@ export default function SignUp() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      
+
       const data = await res.json();
-      
+
       if (!data.success) {
-        return setErrorMessage(data.message);
+        setErrorMessage(data.message);
+        setLoading(false);
+        return;
       }
-      
+
       setLoading(false);
       if (res.ok) {
         navigate('/sign-in');
@@ -45,79 +84,156 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen mt-20">
-      <div className="flex p-3 max-w-3xl mx-auto flex-col md:flex-row md:items-center gap-5">
-        {/* Left side */}
-        <div className="flex-1">
-          <Link to="/" className="font-bold dark:text-white text-4xl">
-            <span className="px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white">
-              Aman's Blog
-            </span>
-          </Link>
-          <p className="text-sm mt-5">
-            You can sign up with your email and password or with Google
-          </p>
-        </div>
-        
-        {/* Right side */}
-        <div className="flex-1 mt-2">
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <div>
-              <Label value="Your username" />
-              <TextInput
-                type="text"
-                placeholder="Enter your username"
-                id="username"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label value="Your email" />
-              <TextInput
-                type="email"
-                placeholder="Enter your email"
-                id="email"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <Label value="Your password" />
-              <TextInput
-                type="password"
-                placeholder="Enter your password"
-                id="password"
-                onChange={handleChange}
-              />
-            </div>
-            <Button 
-              gradientDuoTone="purpleToPink" 
-              type="submit" 
-              disabled={loading}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-4xl"
+      >
+        <div className="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+          {/* Left side - Branding */}
+          <div className="flex-1 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-12 text-white flex flex-col justify-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
             >
-              {loading ? (
-                <>
-                  <Spinner size='sm' />
-                  <span className='pl-3'>Loading...</span>
-                </>
-              ) : "Sign up"}
-            </Button>
-            <OAuth />
-          </form>
-          
-          <div className="flex gap-2 text-sm mt-5">
-            <span>Have an account?</span>
-            <Link to="/sign-in" className="text-indigo-500 font-bold">
-              Sign In
-            </Link>
+              <h1 className="text-4xl font-bold mb-4">Join Our Community!</h1>
+              <p className="text-lg opacity-90 mb-6">
+                Create an account to start sharing your thoughts and connect with amazing people.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">✓</div>
+                  <p>Create and publish posts</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">✓</div>
+                  <p>Join discussions</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">✓</div>
+                  <p>Build your audience</p>
+                </div>
+              </div>
+            </motion.div>
           </div>
-          
-          {errorMessage && (
-            <Alert className="mt-5" color="failure">
-              {errorMessage}
-            </Alert>
-          )}
+
+          {/* Right side - Form */}
+          <div className="flex-1 p-12">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create Account</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">Fill in your details to get started</p>
+
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                <div>
+                  <Label htmlFor="username" value="Username" className="mb-2 block" />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <HiUser className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <TextInput
+                      type="text"
+                      placeholder="johndoe"
+                      id="username"
+                      onChange={handleChange}
+                      className="pl-10"
+                      color={validationErrors.username ? 'failure' : 'gray'}
+                    />
+                  </div>
+                  {validationErrors.username && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.username}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="email" value="Email Address" className="mb-2 block" />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <HiMail className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <TextInput
+                      type="email"
+                      placeholder="your@email.com"
+                      id="email"
+                      onChange={handleChange}
+                      className="pl-10"
+                      color={validationErrors.email ? 'failure' : 'gray'}
+                    />
+                  </div>
+                  {validationErrors.email && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="password" value="Password" className="mb-2 block" />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <HiLockClosed className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <TextInput
+                      type="password"
+                      placeholder="••••••••"
+                      id="password"
+                      onChange={handleChange}
+                      className="pl-10"
+                      color={validationErrors.password ? 'failure' : 'gray'}
+                    />
+                  </div>
+                  {validationErrors.password && (
+                    <p className="text-red-500 text-sm mt-1">{validationErrors.password}</p>
+                  )}
+                </div>
+
+                {errorMessage && (
+                  <Alert color="failure" className="mb-4">
+                    {errorMessage}
+                  </Alert>
+                )}
+
+                <Button
+                  gradientDuoTone="purpleToPink"
+                  type="submit"
+                  disabled={loading}
+                  className="w-full"
+                  size="lg"
+                >
+                  {loading ? (
+                    <>
+                      <Spinner size='sm' />
+                      <span className='pl-3'>Creating account...</span>
+                    </>
+                  ) : "Create Account"}
+                </Button>
+
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
+                  </div>
+                </div>
+
+                <OAuth />
+              </form>
+
+              <div className="flex gap-2 text-sm mt-6 justify-center">
+                <span className="text-gray-600 dark:text-gray-400">Already have an account?</span>
+                <Link to="/sign-in" className="text-indigo-500 font-bold hover:underline">
+                  Sign In
+                </Link>
+              </div>
+            </motion.div>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

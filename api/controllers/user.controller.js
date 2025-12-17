@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import bcryptjs from "bcryptjs";
+import argon2 from "argon2";
 
 export const test = (req, res) => {
   res.json({ message: "API is working" });
@@ -12,12 +13,17 @@ export const updateUser = async (req, res, next) => {
       return next(errorHandler(403, "You are  allowed to update this user"));
     }
     if (req.body.password) {
-      if (req.body.password.length < 6) {
+      if (req.body.password.length < 8) {
         return next(
-          errorHandler(400, "Password must be at least 6 characters long")
+          errorHandler(400, "Password must be at least 8 characters long")
         );
       }
-      req.body.password = bcryptjs.hashSync(req.body.password, 10);
+      req.body.password = await argon2.hash(req.body.password, {
+        type: argon2.argon2id,
+        memoryCost: 2 ** 16,
+        timeCost: 3,
+        parallelism: 1,
+      });
     }
     if (req.body.username) {
       if (req.body.username.length < 7 || req.body.username.length > 20) {

@@ -5,6 +5,7 @@ import { HiArrowLeft, HiCalendar, HiTag, HiHeart, HiOutlineHeart } from "react-i
 import { useSelector } from "react-redux";
 import CommentSection from "../components/CommentSection";
 import { toast } from "react-toastify";
+import DOMPurify from "dompurify";
 
 export default function PostPage() {
   const { postSlug } = useParams();
@@ -136,7 +137,7 @@ export default function PostPage() {
             {/* Post Content */}
             <div
               className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-a:text-indigo-600 hover:prose-a:text-indigo-700 prose-strong:text-gray-900 dark:prose-strong:text-white prose-code:text-indigo-600 dark:prose-code:text-indigo-400 prose-pre:bg-gray-800 prose-pre:text-gray-100"
-              dangerouslySetInnerHTML={{ __html: post && post.content }}
+              dangerouslySetInnerHTML={{ __html: post && DOMPurify.sanitize(post.content) }}
             ></div>
 
             {/* Like Button Section */}

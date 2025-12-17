@@ -2,11 +2,9 @@ import Post from "../models/post.model.js";
 import { errorHandler } from "../utils/error.js";
 
 export const create = async (req, res, next) => {
-  if (!req.user.isAdmin) {
-    return next(errorHandler(403, "You are not allowed to create a post"));
-  }
+  // All authenticated users can create posts
   if (!req.body.title || !req.body.content) {
-    return next(errorHandler(400, "Please provide all required field"));
+    return next(errorHandler(400, "Please provide all required fields"));
   }
   const slug = req.body.title
     .split( ' ' )
@@ -42,7 +40,7 @@ export const getposts = async (req,res,next) => {
           {content: { $regex: req.query.searchTerm, $options: 'i' } },
         ]
       }),
-  }).sort({updateedAt: sortDirection}).skip(startIndex).limit(limit);
+  }).sort({updatedAt: sortDirection}).skip(startIndex).limit(limit);
 
   const totalPosts = await Post.countDocuments();
   const now = new Date();
@@ -67,8 +65,9 @@ export const getposts = async (req,res,next) => {
 };
 
 export const deletepost = async (req,res,next) =>{
-   if(!req.user.isAdmin || req.user.id !== req.params.userId){
-    return next(errorHandler(403, 'You are not allowed to delete this post'));
+   // Super admin can delete any post, regular users can only delete their own posts
+   if(!req.user.isAdmin && req.user.id !== req.params.userId){
+    return next(errorHandler(403, 'You can only delete your own posts'));
    }
    try {
     await Post.findByIdAndDelete(req.params.postId);
@@ -79,8 +78,9 @@ export const deletepost = async (req,res,next) =>{
 };
 
 export const updatepost = async (req, res, next) =>{
-  if(!req.user.isAdmin || req.user.id !== req.params.userId){
-    return next(errorHandler(403, 'You are not allowed to update this post'));
+  // Super admin can update any post, regular users can only update their own posts
+  if(!req.user.isAdmin && req.user.id !== req.params.userId){
+    return next(errorHandler(403, 'You can only update your own posts'));
     }
     try {
       const updatedPost =  await Post.findByIdAndUpdate(

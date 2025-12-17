@@ -49,17 +49,15 @@ export default function DashSidebar() {
           >
             Profile
           </Sidebar.Item>
-          {currentUser.isAdmin && (
           <Link to="/dashboard?tab=posts">
             <Sidebar.Item active={tab === "posts"} icon={HiDocumentText} as='div'>
-              Posts
+              My Posts
             </Sidebar.Item>
           </Link>
-          )}
           {currentUser.isAdmin && (
           <Link to="/dashboard?tab=users">
             <Sidebar.Item active={tab === "users"} icon={HiOutlineUserGroup} as='div'>
-              Users
+              All Users
             </Sidebar.Item>
           </Link>
           )}

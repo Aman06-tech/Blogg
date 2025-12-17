@@ -8,14 +8,15 @@ import {
     deleteComment,
     getComments,
 } from '../controllers/comment.controller.js';
+import { apiLimiter } from '../middleware/security.middleware.js';
 
 const router = express.Router();
 
-router.post('/create', verifyToken, createComment);
-router.get('/getPostComments/:postId', getPostComments);
-router.put('/likeComment/:commentId', verifyToken, likeComment);
-router.put('/editComment/:commentId', verifyToken, editComment);
-router.delete('/deleteComment/:commentId', verifyToken, deleteComment);
-router.get('/getcomments', verifyToken, getComments);
+router.post('/create', apiLimiter, verifyToken, createComment);
+router.get('/getPostComments/:postId', apiLimiter, getPostComments);
+router.put('/likeComment/:commentId', apiLimiter, verifyToken, likeComment);
+router.put('/editComment/:commentId', apiLimiter, verifyToken, editComment);
+router.delete('/deleteComment/:commentId', apiLimiter, verifyToken, deleteComment);
+router.get('/getcomments', apiLimiter, verifyToken, getComments);
 
 export default router;

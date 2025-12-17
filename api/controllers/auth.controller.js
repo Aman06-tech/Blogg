@@ -65,6 +65,7 @@ export const signup = async (req, res, next) => {
       verificationToken,
       verificationTokenExpiry,
       verified: false,
+      isAdmin: false, // Regular users are not admins
       loginAttempts: 0,
       lockUntil: null,
     });
@@ -81,7 +82,7 @@ export const signup = async (req, res, next) => {
         },
       });
 
-      const verificationUrl = `${process.env.BASE_URL || 'http://localhost:3001'}/api/auth/verify/${verificationToken}`;
+      const verificationUrl = `${process.env.BASE_URL || 'http://localhost:5173'}/api/auth/verify/${verificationToken}`;
       
       await transporter.sendMail({
         to: email,
@@ -434,6 +435,7 @@ export const google = async (req, res, next) => {
         password: hashedPassword,
         profilePicture: googlePhotoUrl,
         verified: true, // Google users are pre-verified
+        isAdmin: false, // Regular users are not admins
         loginAttempts: 0,
       });
       

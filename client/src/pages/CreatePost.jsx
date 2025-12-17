@@ -4,8 +4,8 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { Alert, Button, FileInput, Select, TextInput } from "flowbite-react";
-import { useState } from "react";
+import { Alert, Button, FileInput, Select, TextInput, Label, Card, Spinner } from "flowbite-react";
+import { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { app } from "../firebase";
@@ -13,6 +13,8 @@ import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { motion } from "framer-motion";
+import { HiUpload, HiPhotograph, HiDocumentText, HiTag } from "react-icons/hi";
 
 export default function CreatePost() {
   const [file, setFile] = useState(null);
@@ -20,8 +22,16 @@ export default function CreatePost() {
   const [imageUploadError, setImageUploadError] = useState(null);
   const [formData, setFormData] = useState({});
   const [publishError, setPublishError] = useState(null);
- 
+  const [publishing, setPublishing] = useState(false);
+
   const navigate = useNavigate();
+
+  // Auto upload image when file is selected
+  useEffect(() => {
+    if (file) {
+      handleUploadImage();
+    }
+  }, [file]);
   const handleUploadImage = async () => {
     try {
       if (!file) {
@@ -58,104 +68,179 @@ export default function CreatePost() {
       console.log(error);
     }
   };
-  const handleSubmit = async (e)=>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/post/create",{
+      setPublishing(true);
+      setPublishError(null);
+      const res = await fetch("/api/post/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-    });
-    const data = await res.json();
-    if(!res.ok){
-      setPublishError(data.message)
-      return
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPublishError(data.message);
+        setPublishing(false);
+        return;
+      }
+      if (res.ok) {
+        setPublishError(null);
+        setPublishing(false);
+        toast.success("Blog post published successfully!");
+        navigate(`/post/${data.slug}`);
+      }
+    } catch (error) {
+      setPublishError("Something went wrong");
+      setPublishing(false);
     }
-    if(res.ok){
-      setPublishError(null);
-      toast.success("Blog post published successfully!");
-      navigate("/");
-    }
-  }catch(error){
-    setPublishError("Something went wrong");
-  }
-};
+  };
   return (
-    <div className="p-3 max-w-3xl mx-auto min-h-screen">
-      <h1 className="text-center text-3xl my-7 font-semibold">Create Post</h1>
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <div className="flex flex-col gap-4 sm:flex-row justify-between">
-          <TextInput
-            type="text"
-            placeholder="Title"
-            required
-            id="title"
-            className="flex-1"
-            onChange={(e) => setFormData({...formData,title:e.target.value})}
-          />
-          <Select onChange={(e)=>setFormData({...formData,category:e.target.value})}>
-            <option value="uncategorized">Select category</option>
-            <option value="personalblogg">Personal Blogg</option>
-            <option value="professionalblogg">Professional Blogg</option>
-            <option value="Educational blogg">Educational Blogg</option>
-            <option value="newsandcurrentaffairs blogg">
-              News and Current Affairs Blogg
-            </option>
-            <option value="techblogg">Tech Blogg</option>
-            <option value="creativewrittingblogg">
-              Creative Writing Blogg
-            </option>
-            <option value="multimediablogg">Multimedia Blogg</option>
-            <option value="climateblogg">Climate Blogg</option>
-            <option value="medicalblogg">Medical Blogg</option>
-          </Select>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 py-12 px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-4xl mx-auto"
+      >
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-2">
+            Create New Post
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">Share your thoughts with the world</p>
         </div>
-        <div className="flex gap-4 items-center justify-between border-4 border-teal-500 border-double p-3">
-          <FileInput
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFile(e.target.files[0])}
-          />
-          <Button
-            type="button"
-            gradientDuoTone="purpleToBlue"
-            size="sm"
-            outline
-            onClick={handleUploadImage}
-            disabled={imageUploadProgress}
-          >
-            {imageUploadProgress ? (
-              <div className="w-16 h-16">
-                <CircularProgressbar
-                  value={imageUploadProgress}
-                  text={`${imageUploadProgress || 0}%`}
+
+        <Card className="shadow-2xl">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Title and Category Section */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title" className="flex items-center gap-2 mb-2">
+                  <HiDocumentText className="w-5 h-5" />
+                  <span className="font-semibold">Post Title</span>
+                </Label>
+                <TextInput
+                  type="text"
+                  placeholder="Enter an engaging title..."
+                  required
+                  id="title"
+                  sizing="lg"
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
               </div>
-            ) : (
-              "Upload Image"
-            )}
-          </Button>
-        </div>
-        {imageUploadError && <Alert color="failure">{imageUploadError}</Alert>}
-        {formData.image && (
-          <img
-            src={formData.image}
-            alt="upload"
-            className="w-full h-72 object-cover"
-          />
-        )}
-        <ReactQuill
-          theme="snow"
-          placeholder="Write Your Content..."
-          className="h-72 mb-12"
-          required
-          onChange={(value)=>{setFormData({...formData,content:value})}}
-        />
-        <Button type="submit" gradientDuoTone="purpleToPink">Publish</Button>
-        {publishError && <Alert  className="mt-5" color = "failure">{publishError}</Alert>}
-      </form>
+
+              <div>
+                <Label htmlFor="category" className="flex items-center gap-2 mb-2">
+                  <HiTag className="w-5 h-5" />
+                  <span className="font-semibold">Category</span>
+                </Label>
+                <Select
+                  id="category"
+                  sizing="lg"
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                >
+                  <option value="uncategorized">Select a category</option>
+                  <option value="personal">Personal Blog</option>
+                  <option value="professional">Professional Blog</option>
+                  <option value="educational">Educational Blog</option>
+                  <option value="news">News and Current Affairs</option>
+                  <option value="technology">Technology Blog</option>
+                  <option value="creative">Creative Writing</option>
+                  <option value="multimedia">Multimedia Blog</option>
+                  <option value="climate">Climate Blog</option>
+                  <option value="medical">Medical Blog</option>
+                </Select>
+              </div>
+            </div>
+
+            {/* Image Upload Section */}
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2">
+                <HiPhotograph className="w-5 h-5" />
+                <span className="font-semibold">Featured Image</span>
+                {imageUploadProgress && (
+                  <span className="text-sm text-purple-600 dark:text-purple-400">
+                    (Uploading: {imageUploadProgress}%)
+                  </span>
+                )}
+              </Label>
+              <div className="border-4 border-purple-300 dark:border-purple-700 border-dashed rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                <FileInput
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  disabled={imageUploadProgress !== null}
+                  helperText="Image will upload automatically when selected"
+                />
+                {imageUploadProgress && (
+                  <div className="mt-4">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                      <div
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 h-2.5 rounded-full transition-all duration-300"
+                        style={{ width: `${imageUploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {imageUploadError && <Alert color="failure">{imageUploadError}</Alert>}
+              {formData.image && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative rounded-lg overflow-hidden shadow-lg"
+                >
+                  <img
+                    src={formData.image}
+                    alt="upload"
+                    className="w-full h-72 object-cover"
+                  />
+                </motion.div>
+              )}
+            </div>
+
+            {/* Content Editor Section */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <HiDocumentText className="w-5 h-5" />
+                <span className="font-semibold">Content</span>
+              </Label>
+              <ReactQuill
+                theme="snow"
+                placeholder="Write your amazing content here..."
+                className="h-72 mb-12"
+                required
+                onChange={(value) => { setFormData({ ...formData, content: value }) }}
+              />
+            </div>
+
+            {/* Publish Button */}
+            {publishError && <Alert color="failure">{publishError}</Alert>}
+            <Button
+              type="submit"
+              gradientDuoTone="purpleToPink"
+              size="lg"
+              className="w-full"
+              disabled={publishing}
+            >
+              {publishing ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  <span>Publishing...</span>
+                </>
+              ) : (
+                <>
+                  <HiUpload className="mr-2 w-5 h-5" />
+                  Publish Post
+                </>
+              )}
+            </Button>
+          </form>
+        </Card>
+      </motion.div>
     </div>
   );
 }

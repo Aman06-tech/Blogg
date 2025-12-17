@@ -7,6 +7,7 @@ import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
 import postRoutes from  "./routes/post.route.js";
 import commentRoutes from "./routes/comment.route.js";
+import { securityHeaders, sanitizeInput, corsOptions } from "./middleware/security.middleware.js";
 
 dotenv.config();
 
@@ -22,13 +23,12 @@ mongoose
 
 const app = express();
 
-// Basic middleware
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
-  credentials: true
-}));
-app.use(express.json());
+// Security middleware
+app.use(securityHeaders);
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
+app.use(sanitizeInput);
 
 // Routes
 app.use("/api/user", userRoutes);

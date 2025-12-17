@@ -25,9 +25,8 @@ export default function DashPosts() {
         console.log(error.message);
       }
     };
-    if (currentUser.isAdmin) {
-      fetchPosts();
-    }
+    // Fetch posts for all users (their own posts)
+    fetchPosts();
   }, [currentUser._id]);
 
   const handleShowMore = async () =>{
