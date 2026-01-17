@@ -4,12 +4,11 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { Alert, Button, FileInput, Select, TextInput, Label, Card, Spinner } from "flowbite-react";
+import { Alert, Button, FileInput, Select, TextInput, Label, Spinner } from "flowbite-react";
 import { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { app } from "../firebase";
-import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -32,6 +31,7 @@ export default function CreatePost() {
       handleUploadImage();
     }
   }, [file]);
+
   const handleUploadImage = async () => {
     try {
       if (!file) {
@@ -68,6 +68,7 @@ export default function CreatePost() {
       console.log(error);
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -97,8 +98,9 @@ export default function CreatePost() {
       setPublishing(false);
     }
   };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 py-12 px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -106,20 +108,20 @@ export default function CreatePost() {
         className="max-w-4xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
             Create New Post
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">Share your thoughts with the world</p>
+          <p className="text-slate-600 dark:text-slate-400">Share your thoughts with the world</p>
         </div>
 
-        <Card className="shadow-2xl">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Title and Category Section */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="title" className="flex items-center gap-2 mb-2">
+                <Label htmlFor="title" className="flex items-center gap-2 mb-2 text-slate-700 dark:text-slate-300">
                   <HiDocumentText className="w-5 h-5" />
-                  <span className="font-semibold">Post Title</span>
+                  <span className="font-medium">Post Title</span>
                 </Label>
                 <TextInput
                   type="text"
@@ -132,9 +134,9 @@ export default function CreatePost() {
               </div>
 
               <div>
-                <Label htmlFor="category" className="flex items-center gap-2 mb-2">
+                <Label htmlFor="category" className="flex items-center gap-2 mb-2 text-slate-700 dark:text-slate-300">
                   <HiTag className="w-5 h-5" />
-                  <span className="font-semibold">Category</span>
+                  <span className="font-medium">Category</span>
                 </Label>
                 <Select
                   id="category"
@@ -157,16 +159,16 @@ export default function CreatePost() {
 
             {/* Image Upload Section */}
             <div className="space-y-4">
-              <Label className="flex items-center gap-2">
+              <Label className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <HiPhotograph className="w-5 h-5" />
-                <span className="font-semibold">Featured Image</span>
+                <span className="font-medium">Featured Image</span>
                 {imageUploadProgress && (
-                  <span className="text-sm text-purple-600 dark:text-purple-400">
+                  <span className="text-sm text-slate-500">
                     (Uploading: {imageUploadProgress}%)
                   </span>
                 )}
               </Label>
-              <div className="border-4 border-purple-300 dark:border-purple-700 border-dashed rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+              <div className="border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-lg p-4 bg-slate-50 dark:bg-slate-900">
                 <FileInput
                   type="file"
                   accept="image/*"
@@ -176,9 +178,9 @@ export default function CreatePost() {
                 />
                 {imageUploadProgress && (
                   <div className="mt-4">
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                    <div className="w-full bg-slate-200 rounded-full h-2 dark:bg-slate-700">
                       <div
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 h-2.5 rounded-full transition-all duration-300"
+                        className="bg-slate-900 dark:bg-white h-2 rounded-full transition-all duration-300"
                         style={{ width: `${imageUploadProgress}%` }}
                       ></div>
                     </div>
@@ -191,7 +193,7 @@ export default function CreatePost() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
-                  className="relative rounded-lg overflow-hidden shadow-lg"
+                  className="relative rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700"
                 >
                   <img
                     src={formData.image}
@@ -204,9 +206,9 @@ export default function CreatePost() {
 
             {/* Content Editor Section */}
             <div className="space-y-2">
-              <Label className="flex items-center gap-2">
+              <Label className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
                 <HiDocumentText className="w-5 h-5" />
-                <span className="font-semibold">Content</span>
+                <span className="font-medium">Content</span>
               </Label>
               <ReactQuill
                 theme="snow"
@@ -221,7 +223,7 @@ export default function CreatePost() {
             {publishError && <Alert color="failure">{publishError}</Alert>}
             <Button
               type="submit"
-              gradientDuoTone="purpleToPink"
+              color="dark"
               size="lg"
               className="w-full"
               disabled={publishing}
@@ -239,9 +241,8 @@ export default function CreatePost() {
               )}
             </Button>
           </form>
-        </Card>
+        </div>
       </motion.div>
     </div>
   );
 }
-

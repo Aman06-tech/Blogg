@@ -27,7 +27,7 @@ export default function OAuth() {
         })
         const data= await res.json()
         if (res.ok){
-            dispatch(signInSuccess(data))
+            dispatch(signInSuccess(data.user))
             navigate('/')
         }
          } catch (error) {
@@ -35,8 +35,13 @@ export default function OAuth() {
          }
     }
   return (
-    <Button type="button" gradientDuoTone="pinkToOrange" outline onClick={handleGoogleClick}>
-        <AiFillGoogleCircle  className="w-6 h-6 mr-2" />
+    <Button
+      type="button"
+      color="gray"
+      className="w-full border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+      onClick={handleGoogleClick}
+    >
+        <AiFillGoogleCircle className="w-5 h-5 mr-2" />
         Continue with Google
     </Button>
   );

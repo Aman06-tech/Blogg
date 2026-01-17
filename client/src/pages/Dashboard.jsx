@@ -15,16 +15,20 @@ export default function Dashboard() {
       setTab(tabFromUrl);
     }
   }, [location.search]);
-  return<div className="min-h-screen flex flex-col md:flex-row">
+  return (
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 dark:bg-slate-900">
       <div className="md:w-56">
         {/*Sidebar */}
-       <DashSidebar /> 
+        <DashSidebar />
       </div>
       {/* profile .... */}
-      {tab === "profile" && <DashProfile />}
-      {/*Posts*/}
-      {tab === "posts" && <DashPosts />}
-      {/*users*/}
-      {tab === "users" && <DashUsers/>}
-    </div>;
+      <div className="flex-1">
+        {tab === "profile" && <DashProfile />}
+        {/*Posts*/}
+        {tab === "posts" && <DashPosts />}
+        {/*users*/}
+        {tab === "users" && <DashUsers />}
+      </div>
+    </div>
+  );
 }

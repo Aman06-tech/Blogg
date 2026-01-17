@@ -2,13 +2,11 @@ import { Avatar, Button, Dropdown, Navbar, TextInput } from "flowbite-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
-import { HiUser, HiCog, HiLogout, HiViewGrid } from "react-icons/hi";
+import { HiUser, HiLogout, HiViewGrid, HiPencil } from "react-icons/hi";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../redux/theme/themeSlice.js";
 import { signoutSuccess } from "../redux/user/userSlice.js";
 import { useState } from "react";
-
-
 
 export default function Header() {
   const path = useLocation().pathname;
@@ -43,13 +41,17 @@ export default function Header() {
   };
 
   return (
-    <Navbar className="border-b-2 sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md">
+    <Navbar className="border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 bg-white dark:bg-slate-900 shadow-sm">
       <Link
         to="/"
-        className="self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white transition-transform hover:scale-105"
+        className="self-center transition-transform hover:scale-105"
       >
-        <span className="px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white">
-          Aman's Blog
+        <span className="text-xl sm:text-2xl font-bold">
+          <span className="text-blue-600">daily</span>
+          <span className="text-slate-700 dark:text-slate-200 relative">
+            bloggs
+            <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-orange-500 rounded-full"></span>
+          </span>
         </span>
       </Link>
       <form onSubmit={handleSearchSubmit}>
@@ -79,7 +81,7 @@ export default function Header() {
           pill
           onClick={() => dispatch(toggleTheme())}
         >
-          {theme === 'light' ? <FaSun /> : <FaMoon />}
+          {theme === 'light' ? <FaSun className="text-amber-500" /> : <FaMoon className="text-slate-300" />}
         </Button>
         {user ? (
           <Dropdown
@@ -90,13 +92,13 @@ export default function Header() {
                 alt="user"
                 img={user.profilePicture}
                 rounded
-                className="transition-transform hover:scale-110 ring-2 ring-purple-500"
+                className="transition-transform hover:scale-110 ring-2 ring-slate-300 dark:ring-slate-600"
               />
             }
           >
             <Dropdown.Header>
-              <span className="block text-sm font-semibold">@{user.username}</span>
-              <span className="block text-sm font-medium truncate text-gray-500">
+              <span className="block text-sm font-semibold text-slate-900 dark:text-white">@{user.username}</span>
+              <span className="block text-sm font-medium truncate text-slate-500">
                 {user.email}
               </span>
             </Dropdown.Header>
@@ -111,18 +113,18 @@ export default function Header() {
               </Dropdown.Item>
             </Link>
             <Link to="/create-post">
-              <Dropdown.Item icon={HiCog}>
+              <Dropdown.Item icon={HiPencil}>
                 Create Post
               </Dropdown.Item>
             </Link>
             <Dropdown.Divider />
-            <Dropdown.Item onClick={handleSignout} icon={HiLogout}>
+            <Dropdown.Item onClick={handleSignout} icon={HiLogout} className="text-red-600">
               Sign Out
             </Dropdown.Item>
           </Dropdown>
         ) : (
           <Link to="/sign-in">
-            <Button gradientDuoTone="purpleToPink" outline pill className="transition-transform hover:scale-105">
+            <Button color="dark" pill className="transition-transform hover:scale-105">
               Sign In
             </Button>
           </Link>
@@ -131,10 +133,10 @@ export default function Header() {
       </div>
       <Navbar.Collapse>
         <Navbar.Link active={path === "/"} as={"div"}>
-          <Link to="/" className="transition-colors">Home</Link>
+          <Link to="/" className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium">Home</Link>
         </Navbar.Link>
         <Navbar.Link active={path === "/about"} as={"div"}>
-          <Link to="/about" className="transition-colors">About</Link>
+          <Link to="/about" className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium">About</Link>
         </Navbar.Link>
       </Navbar.Collapse>
     </Navbar>

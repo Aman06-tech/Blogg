@@ -14,7 +14,6 @@ export default function SignUp() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
-    // Clear validation error for this field
     setValidationErrors({ ...validationErrors, [e.target.id]: '' });
   };
 
@@ -84,37 +83,43 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-4xl"
       >
-        <div className="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="flex flex-col md:flex-row bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
           {/* Left side - Branding */}
-          <div className="flex-1 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-12 text-white flex flex-col justify-center">
+          <div className="flex-1 bg-slate-900 dark:bg-slate-950 p-12 text-white flex flex-col justify-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h1 className="text-4xl font-bold mb-4">Join Our Community!</h1>
-              <p className="text-lg opacity-90 mb-6">
+              <h1 className="text-4xl font-bold mb-4">Join Our Community</h1>
+              <p className="text-lg text-slate-300 mb-8">
                 Create an account to start sharing your thoughts and connect with amazing people.
               </p>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">✓</div>
-                  <p>Create and publish posts</p>
+                  <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-emerald-400">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  </div>
+                  <p className="text-slate-300">Create and publish posts</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">✓</div>
-                  <p>Join discussions</p>
+                  <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-emerald-400">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  </div>
+                  <p className="text-slate-300">Join discussions</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">✓</div>
-                  <p>Build your audience</p>
+                  <div className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center text-emerald-400">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                  </div>
+                  <p className="text-slate-300">Build your audience</p>
                 </div>
               </div>
             </motion.div>
@@ -127,15 +132,15 @@ export default function SignUp() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create Account</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">Fill in your details to get started</p>
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h2>
+              <p className="text-slate-600 dark:text-slate-400 mb-8">Fill in your details to get started</p>
 
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>
-                  <Label htmlFor="username" value="Username" className="mb-2 block" />
+                  <Label htmlFor="username" value="Username" className="mb-2 block text-slate-700 dark:text-slate-300" />
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <HiUser className="w-5 h-5 text-gray-400" />
+                      <HiUser className="w-5 h-5 text-slate-400" />
                     </div>
                     <TextInput
                       type="text"
@@ -152,10 +157,10 @@ export default function SignUp() {
                 </div>
 
                 <div>
-                  <Label htmlFor="email" value="Email Address" className="mb-2 block" />
+                  <Label htmlFor="email" value="Email Address" className="mb-2 block text-slate-700 dark:text-slate-300" />
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <HiMail className="w-5 h-5 text-gray-400" />
+                      <HiMail className="w-5 h-5 text-slate-400" />
                     </div>
                     <TextInput
                       type="email"
@@ -172,14 +177,14 @@ export default function SignUp() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password" value="Password" className="mb-2 block" />
+                  <Label htmlFor="password" value="Password" className="mb-2 block text-slate-700 dark:text-slate-300" />
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <HiLockClosed className="w-5 h-5 text-gray-400" />
+                      <HiLockClosed className="w-5 h-5 text-slate-400" />
                     </div>
                     <TextInput
                       type="password"
-                      placeholder="••••••••"
+                      placeholder="Create a strong password"
                       id="password"
                       onChange={handleChange}
                       className="pl-10"
@@ -198,7 +203,7 @@ export default function SignUp() {
                 )}
 
                 <Button
-                  gradientDuoTone="purpleToPink"
+                  color="dark"
                   type="submit"
                   disabled={loading}
                   className="w-full"
@@ -214,10 +219,10 @@ export default function SignUp() {
 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                    <div className="w-full border-t border-slate-300 dark:border-slate-600"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
+                    <span className="px-2 bg-white dark:bg-slate-800 text-slate-500">Or continue with</span>
                   </div>
                 </div>
 
@@ -225,8 +230,8 @@ export default function SignUp() {
               </form>
 
               <div className="flex gap-2 text-sm mt-6 justify-center">
-                <span className="text-gray-600 dark:text-gray-400">Already have an account?</span>
-                <Link to="/sign-in" className="text-indigo-500 font-bold hover:underline">
+                <span className="text-slate-600 dark:text-slate-400">Already have an account?</span>
+                <Link to="/sign-in" className="text-slate-900 dark:text-white font-semibold hover:underline">
                   Sign In
                 </Link>
               </div>

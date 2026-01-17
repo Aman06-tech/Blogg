@@ -31,7 +31,7 @@ export const signup = async (req, res, next) => {
       email,
       password: hashedPassword,
       verified: true, // Skip email verification for now
-      isAdmin: true, // Set all new users as admin by default
+      isAdmin: false, // Regular users are not admins
     });
 
     await newUser.save();
@@ -94,11 +94,17 @@ export const signin = async (req, res, next) => {
 
 export const google = async (req, res, next) => {
   const { email, name, googlePhotoUrl } = req.body;
-  
+
   try {
     let user = await User.findOne({ email });
-    
+
     if (user) {
+      // Update profile picture and username from Google if provided
+      if (googlePhotoUrl && googlePhotoUrl !== user.profilePicture) {
+        user.profilePicture = googlePhotoUrl;
+        await user.save();
+      }
+
       const token = jwt.sign(
         { id: user._id, isAdmin: user.isAdmin },
         process.env.JWT_SECRET,
@@ -129,7 +135,7 @@ export const google = async (req, res, next) => {
         password: hashedPassword,
         profilePicture: googlePhotoUrl,
         verified: true,
-        isAdmin: true, // Set all new users as admin by default
+        isAdmin: false, // Regular users are not admins
       });
 
       await newUser.save();
