@@ -92,14 +92,14 @@ export default function SignUp() {
       >
         <div className="flex flex-col md:flex-row bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
           {/* Left side - Branding */}
-          <div className="flex-1 bg-slate-900 dark:bg-slate-950 p-12 text-white flex flex-col justify-center">
+          <div className="flex-1 bg-slate-900 dark:bg-slate-950 p-6 sm:p-8 md:p-12 text-white flex flex-col justify-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h1 className="text-4xl font-bold mb-4">Join Our Community</h1>
-              <p className="text-lg text-slate-300 mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">Join Our Community</h1>
+              <p className="text-base sm:text-lg text-slate-300 mb-6 sm:mb-8">
                 Create an account to start sharing your thoughts and connect with amazing people.
               </p>
               <div className="space-y-4">
@@ -126,14 +126,14 @@ export default function SignUp() {
           </div>
 
           {/* Right side - Form */}
-          <div className="flex-1 p-12">
+          <div className="flex-1 p-6 sm:p-8 md:p-12">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h2>
-              <p className="text-slate-600 dark:text-slate-400 mb-8">Fill in your details to get started</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h2>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mb-6 sm:mb-8">Fill in your details to get started</p>
 
               <form className="space-y-5" onSubmit={handleSubmit}>
                 <div>

@@ -67,15 +67,162 @@ body {
   overflow: hidden;
 }
 
-/* Focus styles for accessibility */
-*:focus {
-  outline: 2px solid #475569;
-  outline-offset: 2px;
+/* Focus styles for accessibility - only on form inputs */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
 }
 
-/* Hide focus outline for mouse users */
-.no-focus-outline *:focus:not(.focus-visible) {
+/* Remove focus outline from buttons and links */
+button:focus,
+a:focus,
+[role="button"]:focus {
   outline: none;
+}
+
+/* ===== Custom Input Styling - Dark Gray Theme ===== */
+
+/* Text Input */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="tel"],
+input[type="number"] {
+  border-color: #e2e8f0 !important;
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:hover,
+input[type="email"]:hover,
+input[type="password"]:hover,
+input[type="search"]:hover,
+input[type="url"]:hover,
+input[type="tel"]:hover,
+input[type="number"]:hover {
+  border-color: #94a3b8 !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="url"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus {
+  border-color: #475569 !important;
+  --tw-ring-color: transparent !important;
+}
+
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="search"],
+.dark input[type="url"],
+.dark input[type="tel"],
+.dark input[type="number"] {
+  border-color: #475569 !important;
+  background-color: #1e293b !important;
+}
+
+.dark input[type="text"]:hover,
+.dark input[type="email"]:hover,
+.dark input[type="password"]:hover,
+.dark input[type="search"]:hover,
+.dark input[type="url"]:hover,
+.dark input[type="tel"]:hover,
+.dark input[type="number"]:hover {
+  border-color: #64748b !important;
+}
+
+.dark input[type="text"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus,
+.dark input[type="search"]:focus,
+.dark input[type="url"]:focus,
+.dark input[type="tel"]:focus,
+.dark input[type="number"]:focus {
+  border-color: #94a3b8 !important;
+}
+
+/* Select */
+select {
+  border-color: #e2e8f0 !important;
+  transition: all 0.2s ease;
+}
+
+select:hover {
+  border-color: #94a3b8 !important;
+}
+
+select:focus {
+  border-color: #475569 !important;
+  --tw-ring-color: transparent !important;
+}
+
+.dark select {
+  border-color: #475569 !important;
+  background-color: #1e293b !important;
+}
+
+.dark select:hover {
+  border-color: #64748b !important;
+}
+
+.dark select:focus {
+  border-color: #94a3b8 !important;
+}
+
+/* Textarea */
+textarea {
+  border-color: #e2e8f0 !important;
+  transition: all 0.2s ease;
+}
+
+textarea:hover {
+  border-color: #94a3b8 !important;
+}
+
+textarea:focus {
+  border-color: #475569 !important;
+  --tw-ring-color: transparent !important;
+}
+
+.dark textarea {
+  border-color: #475569 !important;
+  background-color: #1e293b !important;
+}
+
+.dark textarea:hover {
+  border-color: #64748b !important;
+}
+
+.dark textarea:focus {
+  border-color: #94a3b8 !important;
+}
+
+/* File Input */
+input[type="file"] {
+  border-color: #e2e8f0 !important;
+}
+
+.dark input[type="file"] {
+  border-color: #475569 !important;
+}
+
+/* Override Flowbite's default focus ring colors */
+[data-testid="flowbite-textinput"]:focus-within,
+[data-testid="flowbite-textarea"]:focus-within,
+[data-testid="flowbite-select"]:focus-within {
+  --tw-ring-color: rgba(71, 85, 105, 0.3) !important;
+}
+
+.dark [data-testid="flowbite-textinput"]:focus-within,
+.dark [data-testid="flowbite-textarea"]:focus-within,
+.dark [data-testid="flowbite-select"]:focus-within {
+  --tw-ring-color: rgba(148, 163, 184, 0.3) !important;
 }
 
 /* Quill editor styling */
@@ -122,4 +269,61 @@ body {
 .dark .ql-picker-options {
   background: #1e293b;
   border-color: #475569;
+}
+
+/* Quill editor focus state */
+.ql-container.ql-snow:focus-within {
+  border-color: #475569 !important;
+}
+
+.dark .ql-container.ql-snow:focus-within {
+  border-color: #94a3b8 !important;
+}
+
+/* Quill toolbar hover */
+.ql-toolbar.ql-snow .ql-picker-label:hover,
+.ql-toolbar.ql-snow .ql-picker-item:hover,
+.ql-toolbar.ql-snow button:hover {
+  color: #1e293b !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker-label:hover,
+.dark .ql-toolbar.ql-snow .ql-picker-item:hover,
+.dark .ql-toolbar.ql-snow button:hover {
+  color: #f1f5f9 !important;
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-stroke {
+  stroke: #f1f5f9 !important;
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-fill {
+  fill: #f1f5f9 !important;
+}
+
+/* Active state for Quill toolbar */
+.ql-toolbar.ql-snow .ql-active,
+.ql-toolbar.ql-snow .ql-picker-label.ql-active {
+  color: #1e293b !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-active,
+.dark .ql-toolbar.ql-snow .ql-picker-label.ql-active {
+  color: #f1f5f9 !important;
+}
+
+.ql-toolbar.ql-snow .ql-active .ql-stroke {
+  stroke: #1e293b !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-active .ql-stroke {
+  stroke: #f1f5f9 !important;
+}
+
+.ql-toolbar.ql-snow .ql-active .ql-fill {
+  fill: #1e293b !important;
+}
+
+.dark .ql-toolbar.ql-snow .ql-active .ql-fill {
+  fill: #f1f5f9 !important;
 }

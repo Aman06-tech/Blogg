@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import Comment from './Comment';
-import { HiOutlineExclamationCircle } from 'react-icons/hi';
+import Avatar from './Avatar';
+import { HiOutlineExclamationCircle, HiChat } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 
 export default function CommentSection({ postId }) {
@@ -115,67 +116,81 @@ export default function CommentSection({ postId }) {
   };
 
   return (
-    <div className='max-w-4xl mx-auto w-full p-3'>
+    <div className='w-full p-4 sm:p-6'>
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-6">
+        <HiChat className="w-5 h-5 text-slate-500" />
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+          Comments
+        </h3>
+        <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm rounded-full">
+          {comments.length}
+        </span>
+      </div>
+
       {currentUser ? (
-        <div className='flex items-center gap-1 my-5 text-gray-500 text-sm'>
-          <p>Signed in as:</p>
-          <img
-            className='h-5 w-5 object-cover rounded-full'
+        <div className='flex items-center gap-2 mb-4 text-sm text-slate-500 dark:text-slate-400'>
+          <p>Commenting as</p>
+          <Avatar
             src={currentUser.profilePicture}
-            alt=''
+            name={currentUser.username}
+            size="xs"
+            showRing={false}
           />
           <Link
             to={'/dashboard?tab=profile'}
-            className='text-xs text-cyan-600 hover:underline'
+            className='text-slate-700 dark:text-slate-300 font-medium hover:underline'
           >
             @{currentUser.username}
           </Link>
         </div>
       ) : (
-        <div className='text-sm text-teal-500 my-5 flex gap-1'>
-          You must be signed in to comment.
-          <Link className='text-blue-500 hover:underline' to={'/sign-in'}>
+        <div className='text-sm text-slate-600 dark:text-slate-400 mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl'>
+          <span>You must be signed in to comment. </span>
+          <Link className='text-blue-600 dark:text-blue-400 font-medium hover:underline' to={'/sign-in'}>
             Sign In
           </Link>
         </div>
       )}
+
       {currentUser && (
         <form
           onSubmit={handleSubmit}
-          className='border border-teal-500 rounded-md p-3'
+          className='border border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-6 bg-slate-50 dark:bg-slate-800/50'
         >
           <Textarea
-            placeholder='Add a comment...'
+            placeholder='Write a comment...'
             rows='3'
             maxLength='200'
             onChange={(e) => setComment(e.target.value)}
             value={comment}
+            className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-slate-400 resize-none"
           />
-          <div className='flex justify-between items-center mt-5'>
-            <p className='text-gray-500 text-xs'>
+          <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4'>
+            <p className='text-slate-500 dark:text-slate-400 text-xs sm:text-sm'>
               {200 - comment.length} characters remaining
             </p>
-            <Button outline gradientDuoTone='purpleToBlue' type='submit'>
-              Submit
+            <Button color="dark" type='submit' size="sm">
+              Post Comment
             </Button>
           </div>
           {commentError && (
-            <Alert color='failure' className='mt-5'>
+            <Alert color='failure' className='mt-4'>
               {commentError}
             </Alert>
           )}
         </form>
       )}
+
       {comments.length === 0 ? (
-        <p className='text-sm my-5 text-gray-500'>No comments yet!</p>
-      ) : (
-        <>
-          <div className='text-sm my-5 flex items-center gap-1'>
-            <p>Comments</p>
-            <div className='border border-gray-400 py-1 px-2 rounded-sm'>
-              <p>{comments.length}</p>
-            </div>
+        <div className='text-center py-8'>
+          <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+            <HiChat className="w-6 h-6 text-slate-400" />
           </div>
+          <p className='text-slate-500 dark:text-slate-400'>No comments yet. Be the first to share your thoughts!</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
           {comments.map((comment) => (
             <Comment
               key={comment._id}
@@ -188,8 +203,9 @@ export default function CommentSection({ postId }) {
               }}
             />
           ))}
-        </>
+        </div>
       )}
+
       <Modal
         show={showModal}
         onClose={() => setShowModal(false)}
@@ -199,19 +215,22 @@ export default function CommentSection({ postId }) {
         <Modal.Header />
         <Modal.Body>
           <div className='text-center'>
-            <HiOutlineExclamationCircle className='h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto' />
-            <h3 className='mb-5 text-lg text-gray-500 dark:text-gray-400'>
-              Are you sure you want to delete this comment?
+            <HiOutlineExclamationCircle className='h-14 w-14 text-red-500 mb-4 mx-auto' />
+            <h3 className='mb-2 text-xl font-semibold text-slate-900 dark:text-white'>
+              Delete Comment
             </h3>
+            <p className="mb-6 text-slate-500 dark:text-slate-400">
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </p>
             <div className='flex justify-center gap-4'>
               <Button
                 color='failure'
                 onClick={() => handleDelete(commentToDelete)}
               >
-                Yes, I'm sure
+                Yes, Delete
               </Button>
               <Button color='gray' onClick={() => setShowModal(false)}>
-                No, cancel
+                Cancel
               </Button>
             </div>
           </div>

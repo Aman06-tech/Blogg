@@ -7,6 +7,8 @@ import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
 import postRoutes from  "./routes/post.route.js";
 import commentRoutes from "./routes/comment.route.js";
+import bookmarkRoutes from "./routes/bookmark.route.js";
+import aiRoutes from "./routes/ai.route.js";
 import { securityHeaders, sanitizeInput, corsOptions } from "./middleware/security.middleware.js";
 
 dotenv.config();
@@ -35,6 +37,8 @@ app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/comment", commentRoutes);
+app.use("/api/bookmark", bookmarkRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

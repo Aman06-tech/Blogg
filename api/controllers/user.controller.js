@@ -120,6 +120,16 @@ export const updateUser = async (req, res, next) => {
      }
   };
 
+  // Public stats endpoint - no authentication required
+  export const getPublicStats = async (req, res, next) => {
+    try {
+      const totalUsers = await User.countDocuments();
+      res.status(200).json({ totalUsers });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   export const getUser = async (req, res, next) => {
     try {
       const user = await User.findById(req.params.userId);
