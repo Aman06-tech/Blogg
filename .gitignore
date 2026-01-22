@@ -8,8 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
 dist-ssr
+# Allow client/dist for production deployment
+!client/dist
 *.local
 
 # Editor directories and files
