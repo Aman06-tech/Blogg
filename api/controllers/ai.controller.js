@@ -1,10 +1,20 @@
 import { errorHandler } from "../utils/error.js";
 
-const AI_API_KEY = "fomoa-Uuq3Xe6vry8OoMDSHeCNUkPzY4TW2Dv876JxDhazgsK4opeA";
-const AI_API_URL = "https://api.forefront.ai/v1/chat/completions";
+// AI API Configuration - Read at runtime to ensure dotenv has loaded
+const getAiConfig = () => ({
+  apiKey: process.env.AI_API_KEY,
+  apiUrl: process.env.AI_API_URL || "https://api.openai.com/v1/chat/completions",
+  model: process.env.AI_MODEL || "gpt-4o-mini"
+});
 
 export const enhanceContent = async (req, res, next) => {
   try {
+    const { apiKey, apiUrl, model } = getAiConfig();
+
+    if (!apiKey) {
+      return next(errorHandler(500, "AI API key not configured. Please add AI_API_KEY to your .env file."));
+    }
+
     const { content, enhanceType } = req.body;
 
     if (!content) {
@@ -44,14 +54,14 @@ export const enhanceContent = async (req, res, next) => {
         userPrompt = content;
     }
 
-    const response = await fetch(AI_API_URL, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${AI_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "forefront/Mistral-7B-Instruct-v0.1-chatml",
+        model: model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -83,20 +93,26 @@ export const enhanceContent = async (req, res, next) => {
 
 export const generateTitleSuggestions = async (req, res, next) => {
   try {
+    const { apiKey, apiUrl, model } = getAiConfig();
+
+    if (!apiKey) {
+      return next(errorHandler(500, "AI API key not configured. Please add AI_API_KEY to your .env file."));
+    }
+
     const { content } = req.body;
 
     if (!content) {
       return next(errorHandler(400, "Content is required"));
     }
 
-    const response = await fetch(AI_API_URL, {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${AI_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "forefront/Mistral-7B-Instruct-v0.1-chatml",
+        model: model,
         messages: [
           {
             role: "system",

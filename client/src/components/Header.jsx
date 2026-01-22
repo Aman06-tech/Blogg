@@ -3,7 +3,7 @@ import Avatar from "./Avatar";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineSearch, AiOutlineClose } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
-import { HiUser, HiLogout, HiViewGrid, HiPencil } from "react-icons/hi";
+import { HiUser, HiLogout, HiViewGrid, HiPencil, HiHome, HiInformationCircle, HiMenu, HiX } from "react-icons/hi";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../redux/theme/themeSlice.js";
 import { signoutSuccess } from "../redux/user/userSlice.js";
@@ -18,6 +18,7 @@ export default function Header() {
   const { theme } = useSelector((state) => state.theme);
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchInputRef = useRef(null);
 
   const handleSignout = async () => {
@@ -59,16 +60,29 @@ export default function Header() {
     }
   }, [isSearchOpen]);
 
-  // Close search on escape key
+  // Close search and mobile menu on escape key
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         setIsSearchOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <Navbar className="border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 bg-white dark:bg-slate-900 shadow-sm">
@@ -180,16 +194,169 @@ export default function Header() {
             </Button>
           </Link>
         )}
-        <Navbar.Toggle />
+        {/* Custom Mobile Menu Toggle */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+          aria-label="Toggle mobile menu"
+        >
+          {isMobileMenuOpen ? (
+            <HiX className="w-6 h-6" />
+          ) : (
+            <HiMenu className="w-6 h-6" />
+          )}
+        </button>
       </div>
-      <Navbar.Collapse>
-        <Navbar.Link active={path === "/"} as={"div"} className="focus:outline-none focus:ring-0">
-          <Link to="/" className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium outline-none">Home</Link>
-        </Navbar.Link>
-        <Navbar.Link active={path === "/about"} as={"div"} className="focus:outline-none focus:ring-0">
-          <Link to="/about" className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium outline-none">About</Link>
-        </Navbar.Link>
-      </Navbar.Collapse>
+
+      {/* Desktop Navigation */}
+      <div className="hidden md:flex md:items-center md:gap-6">
+        <Link
+          to="/"
+          className={`font-medium transition-colors ${path === "/" ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"}`}
+        >
+          Home
+        </Link>
+        <Link
+          to="/about"
+          className={`font-medium transition-colors ${path === "/about" ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"}`}
+        >
+          About
+        </Link>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <div className={`md:hidden fixed top-0 right-0 z-50 h-full w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* Menu Header */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+          <span className="text-lg font-bold">
+            <span className="text-blue-600">daily</span>
+            <span className="text-slate-700 dark:text-slate-200">bloggs</span>
+          </span>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <HiX className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Menu Items */}
+        <nav className="p-4 space-y-2">
+          <Link
+            to="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${path === "/" ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+          >
+            <HiHome className="w-5 h-5" />
+            Home
+          </Link>
+          <Link
+            to="/about"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${path === "/about" ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+          >
+            <HiInformationCircle className="w-5 h-5" />
+            About
+          </Link>
+
+          {/* Divider */}
+          <div className="my-4 border-t border-slate-200 dark:border-slate-700" />
+
+          {/* Theme Toggle */}
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+          >
+            {theme === 'light' ? (
+              <>
+                <FaMoon className="w-5 h-5 text-blue-500" />
+                Dark Mode
+              </>
+            ) : (
+              <>
+                <FaSun className="w-5 h-5 text-amber-500" />
+                Light Mode
+              </>
+            )}
+          </button>
+
+          {/* User Actions */}
+          {user && (
+            <>
+              <div className="my-4 border-t border-slate-200 dark:border-slate-700" />
+              <Link
+                to="/dashboard?tab=profile"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <HiUser className="w-5 h-5" />
+                Profile
+              </Link>
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <HiViewGrid className="w-5 h-5" />
+                Dashboard
+              </Link>
+              <Link
+                to="/create-post"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <HiPencil className="w-5 h-5" />
+                Create Post
+              </Link>
+            </>
+          )}
+        </nav>
+
+        {/* Bottom Section */}
+        {user ? (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+            <div className="flex items-center gap-3 mb-3">
+              <Avatar
+                src={user.profilePicture}
+                name={user.username}
+                size="sm"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">@{user.username}</p>
+                <p className="text-xs text-slate-500 truncate">{user.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                handleSignout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition-all"
+            >
+              <HiLogout className="w-5 h-5" />
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-700">
+            <Link
+              to="/sign-in"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all"
+            >
+              Sign In
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Mobile Search Overlay */}
       {isSearchOpen && (

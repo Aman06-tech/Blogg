@@ -5,7 +5,7 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { Alert, Button, FileInput, Select, TextInput, Spinner, Modal } from "flowbite-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { app } from "../firebase";
@@ -47,11 +47,18 @@ export default function CreatePost() {
   const [showPreview, setShowPreview] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
-  const [showAiPanel, setShowAiPanel] = useState(false);
   const [titleSuggestions, setTitleSuggestions] = useState([]);
   const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
   const [enhancedContent, setEnhancedContent] = useState(null);
   const [showEnhancedPreview, setShowEnhancedPreview] = useState(false);
+
+  // Inline AI states
+  const [showInlineAi, setShowInlineAi] = useState(false);
+  const [inlineAiPosition, setInlineAiPosition] = useState({ top: 0, left: 0 });
+  const [selectedText, setSelectedText] = useState("");
+  const [selectionRange, setSelectionRange] = useState(null);
+  const [showAiMenu, setShowAiMenu] = useState(false);
+  const quillRef = useRef(null);
 
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
@@ -255,6 +262,143 @@ export default function CreatePost() {
     toast.success("Copied to clipboard!");
   };
 
+  // Inline AI - Handle text selection in Quill editor
+  const handleTextSelection = useCallback(() => {
+    if (!quillRef.current) return;
+
+    const quill = quillRef.current.getEditor();
+    const selection = quill.getSelection();
+
+    if (selection && selection.length > 0) {
+      const text = quill.getText(selection.index, selection.length);
+      if (text.trim().length >= 3) {
+        setSelectedText(text);
+        setSelectionRange(selection);
+
+        // Get position for the floating toolbar
+        const bounds = quill.getBounds(selection.index, selection.length);
+        const editorContainer = quill.container.getBoundingClientRect();
+
+        setInlineAiPosition({
+          top: bounds.top + editorContainer.top - 50,
+          left: bounds.left + editorContainer.left + (bounds.width / 2),
+        });
+        setShowInlineAi(true);
+      }
+    } else {
+      // Delay hiding to allow clicking on toolbar
+      setTimeout(() => {
+        if (!document.querySelector('.inline-ai-toolbar:hover')) {
+          setShowInlineAi(false);
+        }
+      }, 200);
+    }
+  }, []);
+
+  // Inline AI - Enhance selected text
+  const handleInlineAiEnhance = async (enhanceType) => {
+    if (!selectedText || selectedText.trim().length < 3) {
+      toast.error("Please select some text first");
+      return;
+    }
+
+    setAiLoading(true);
+    setShowInlineAi(false);
+
+    try {
+      const res = await fetch("/api/ai/enhance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: selectedText, enhanceType }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to enhance content");
+      }
+
+      // Replace selected text with enhanced content
+      if (quillRef.current && selectionRange) {
+        const quill = quillRef.current.getEditor();
+        quill.deleteText(selectionRange.index, selectionRange.length);
+        quill.insertText(selectionRange.index, data.enhancedContent);
+        quill.setSelection(selectionRange.index + data.enhancedContent.length);
+      }
+
+      toast.success(`Text ${enhanceType === 'grammar' ? 'fixed' : enhanceType + 'd'} successfully!`);
+    } catch (error) {
+      console.error("Inline AI Error:", error);
+      toast.error(error.message || "Failed to enhance text");
+    } finally {
+      setAiLoading(false);
+      setSelectedText("");
+      setSelectionRange(null);
+    }
+  };
+
+  // Setup Quill selection listener
+  useEffect(() => {
+    if (quillRef.current) {
+      const quill = quillRef.current.getEditor();
+      quill.on('selection-change', handleTextSelection);
+
+      return () => {
+        quill.off('selection-change', handleTextSelection);
+      };
+    }
+  }, [handleTextSelection]);
+
+  // Close inline AI and AI menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.inline-ai-toolbar') && !e.target.closest('.ql-editor')) {
+        setShowInlineAi(false);
+      }
+      // Close AI menu when clicking outside
+      if (!e.target.closest('.ql-ai-assist') && !e.target.closest('[class*="ai-menu"]') && showAiMenu) {
+        setShowAiMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showAiMenu]);
+
+  // Quill modules with custom toolbar including AI button
+  const quillModules = {
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        ['blockquote', 'code-block'],
+        ['link', 'image'],
+        ['clean'],
+        ['ai-assist'], // Custom AI button
+      ],
+    }
+  };
+
+  // Add custom AI button to Quill toolbar after mount
+  useEffect(() => {
+    const addAiButton = () => {
+      const toolbar = document.querySelector('.ql-toolbar');
+      if (toolbar && !toolbar.querySelector('.ql-ai-assist')) {
+        const aiButton = document.querySelector('.ql-ai-assist');
+        if (aiButton) {
+          aiButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>`;
+          aiButton.title = 'AI Assistant';
+          aiButton.style.color = '#8b5cf6';
+        }
+      }
+    };
+
+    // Small delay to ensure toolbar is rendered
+    const timer = setTimeout(addAiButton, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   const categories = [
     { value: "uncategorized", label: "Select a category", icon: "📁" },
     { value: "technology", label: "Technology", icon: "💻" },
@@ -442,14 +586,96 @@ export default function CreatePost() {
                   <HiDocumentText className="w-5 h-5 text-slate-500" />
                   Content
                 </h3>
-                <div className="prose-editor [&_.ql-toolbar]:border-slate-200 [&_.ql-toolbar]:dark:border-slate-700 [&_.ql-toolbar]:rounded-t-xl [&_.ql-toolbar]:bg-slate-50 [&_.ql-toolbar]:dark:bg-slate-800 [&_.ql-container]:border-slate-200 [&_.ql-container]:dark:border-slate-700 [&_.ql-container]:rounded-b-xl [&_.ql-container]:min-h-[300px] [&_.ql-container]:sm:min-h-[400px] [&_.ql-editor]:text-slate-900 [&_.ql-editor]:dark:text-slate-100 [&_.ql-editor.ql-blank::before]:text-slate-400">
+                <div className="prose-editor relative [&_.ql-toolbar]:border-slate-200 [&_.ql-toolbar]:dark:border-slate-700 [&_.ql-toolbar]:rounded-t-xl [&_.ql-toolbar]:bg-slate-50 [&_.ql-toolbar]:dark:bg-slate-800 [&_.ql-container]:border-slate-200 [&_.ql-container]:dark:border-slate-700 [&_.ql-container]:rounded-b-xl [&_.ql-container]:min-h-[300px] [&_.ql-container]:sm:min-h-[400px] [&_.ql-editor]:text-slate-900 [&_.ql-editor]:dark:text-slate-100 [&_.ql-editor.ql-blank::before]:text-slate-400">
                   <ReactQuill
+                    ref={quillRef}
                     theme="snow"
-                    placeholder="Start writing your story..."
+                    modules={quillModules}
+                    placeholder="Start writing your story... (Select text for AI options)"
                     onChange={(value) => { setFormData({ ...formData, content: value }) }}
                     value={formData.content || ''}
                   />
+
+                  {/* AI Toolbar Dropdown Menu */}
+                  <AnimatePresence>
+                    {showAiMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute top-12 right-4 z-20 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2 min-w-[200px]"
+                      >
+                        <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100 dark:border-slate-700 mb-1">
+                          <HiSparkles className="w-4 h-4 text-purple-500" />
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">AI Assistant</span>
+                        </div>
+                        <button
+                          onClick={() => { handleInlineAiEnhance('improve'); setShowAiMenu(false); }}
+                          disabled={aiLoading || !selectedText}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <HiSparkles className="w-4 h-4 text-purple-500" />
+                          Improve Writing
+                        </button>
+                        <button
+                          onClick={() => { handleInlineAiEnhance('grammar'); setShowAiMenu(false); }}
+                          disabled={aiLoading || !selectedText}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <HiCheck className="w-4 h-4 text-green-500" />
+                          Fix Grammar
+                        </button>
+                        <button
+                          onClick={() => { handleInlineAiEnhance('expand'); setShowAiMenu(false); }}
+                          disabled={aiLoading || !selectedText}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <HiDocumentText className="w-4 h-4 text-blue-500" />
+                          Expand Content
+                        </button>
+                        <button
+                          onClick={() => { handleInlineAiEnhance('summarize'); setShowAiMenu(false); }}
+                          disabled={aiLoading || !selectedText}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <HiBookOpen className="w-4 h-4 text-amber-500" />
+                          Summarize
+                        </button>
+                        <div className="border-t border-slate-100 dark:border-slate-700 mt-1 pt-1">
+                          <button
+                            onClick={() => { handleGenerateTitles(); setShowAiMenu(false); }}
+                            disabled={aiLoading}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            <HiLightningBolt className="w-4 h-4 text-rose-500" />
+                            Generate Titles
+                          </button>
+                        </div>
+                        {!selectedText && (
+                          <p className="px-3 py-2 text-xs text-slate-400 italic">
+                            Select text first for enhance options
+                          </p>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* AI Loading Indicator */}
+                  {aiLoading && (
+                    <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 flex items-center justify-center rounded-xl z-10">
+                      <div className="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg shadow-lg">
+                        <Spinner size="sm" />
+                        <span className="text-sm text-slate-600 dark:text-slate-300">AI is working...</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Inline AI hint */}
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <HiSparkles className="w-3 h-3" />
+                  Click the sparkle icon in toolbar or select text for AI tools
+                </p>
               </div>
             </motion.div>
 
@@ -514,93 +740,41 @@ export default function CreatePost() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              {/* AI Assistant Panel */}
+              {/* AI Assistant Panel - Simplified */}
               <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl border border-purple-200 dark:border-purple-800 p-4 sm:p-6">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
                   <HiChip className="w-5 h-5 text-purple-500" />
                   AI Assistant
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                  Enhance your content with AI-powered tools
-                </p>
 
-                <div className="space-y-2">
-                  {/* Generate Titles */}
-                  <button
-                    onClick={handleGenerateTitles}
-                    disabled={aiLoading}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all text-left disabled:opacity-50"
-                  >
-                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                      <HiLightningBolt className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                {/* Inline AI Instructions */}
+                <div className="bg-white/60 dark:bg-slate-800/60 rounded-xl p-3 mb-4">
+                  <div className="flex items-start gap-2">
+                    <HiSparkles className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Inline AI</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Select any text in the editor to see AI options: Improve, Fix, Expand, or Shorten
+                      </p>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900 dark:text-white text-sm">Generate Titles</p>
-                      <p className="text-xs text-slate-500">Get AI-suggested headlines</p>
-                    </div>
-                    {aiLoading && <Spinner size="sm" />}
-                  </button>
-
-                  {/* Improve Writing */}
-                  <button
-                    onClick={() => handleAiEnhance('improve')}
-                    disabled={aiLoading}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all text-left disabled:opacity-50"
-                  >
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                      <HiSparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900 dark:text-white text-sm">Improve Writing</p>
-                      <p className="text-xs text-slate-500">Make content more engaging</p>
-                    </div>
-                  </button>
-
-                  {/* Fix Grammar */}
-                  <button
-                    onClick={() => handleAiEnhance('grammar')}
-                    disabled={aiLoading}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all text-left disabled:opacity-50"
-                  >
-                    <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                      <HiCheck className="w-4 h-4 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900 dark:text-white text-sm">Fix Grammar</p>
-                      <p className="text-xs text-slate-500">Correct spelling & grammar</p>
-                    </div>
-                  </button>
-
-                  {/* Expand Content */}
-                  <button
-                    onClick={() => handleAiEnhance('expand')}
-                    disabled={aiLoading}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all text-left disabled:opacity-50"
-                  >
-                    <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                      <HiDocumentText className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900 dark:text-white text-sm">Expand Content</p>
-                      <p className="text-xs text-slate-500">Add more details & depth</p>
-                    </div>
-                  </button>
-
-                  {/* Summarize */}
-                  <button
-                    onClick={() => handleAiEnhance('summarize')}
-                    disabled={aiLoading}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all text-left disabled:opacity-50"
-                  >
-                    <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg">
-                      <HiBookOpen className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-slate-900 dark:text-white text-sm">Summarize</p>
-                      <p className="text-xs text-slate-500">Create a concise summary</p>
-                    </div>
-                  </button>
+                  </div>
                 </div>
+
+                {/* Generate Titles - Keep this as it's useful */}
+                <button
+                  onClick={handleGenerateTitles}
+                  disabled={aiLoading}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all text-left disabled:opacity-50"
+                >
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <HiLightningBolt className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900 dark:text-white text-sm">Generate Titles</p>
+                    <p className="text-xs text-slate-500">Get AI-suggested headlines</p>
+                  </div>
+                  {aiLoading && <Spinner size="sm" />}
+                </button>
 
                 {aiError && (
                   <Alert color="failure" className="mt-4 text-sm">{aiError}</Alert>
@@ -1049,6 +1223,69 @@ export default function CreatePost() {
                 </div>
               </motion.div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Inline AI Floating Toolbar */}
+      <AnimatePresence>
+        {showInlineAi && !aiLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="inline-ai-toolbar fixed z-50"
+            style={{
+              top: `${inlineAiPosition.top}px`,
+              left: `${inlineAiPosition.left}px`,
+              transform: 'translateX(-50%)',
+            }}
+          >
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 p-1.5 flex items-center gap-1">
+              <button
+                onClick={() => handleInlineAiEnhance('improve')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                title="Improve writing"
+              >
+                <HiSparkles className="w-3.5 h-3.5 text-purple-500" />
+                Improve
+              </button>
+              <button
+                onClick={() => handleInlineAiEnhance('grammar')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                title="Fix grammar"
+              >
+                <HiCheck className="w-3.5 h-3.5 text-green-500" />
+                Fix
+              </button>
+              <button
+                onClick={() => handleInlineAiEnhance('expand')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                title="Expand content"
+              >
+                <HiDocumentText className="w-3.5 h-3.5 text-blue-500" />
+                Expand
+              </button>
+              <button
+                onClick={() => handleInlineAiEnhance('summarize')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                title="Summarize"
+              >
+                <HiBookOpen className="w-3.5 h-3.5 text-amber-500" />
+                Shorten
+              </button>
+              <div className="w-px h-5 bg-slate-200 dark:bg-slate-600 mx-0.5"></div>
+              <button
+                onClick={() => setShowInlineAi(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                title="Close"
+              >
+                <HiX className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {/* Arrow pointer */}
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-3 h-3 bg-white dark:bg-slate-800 border-r border-b border-slate-200 dark:border-slate-700 rotate-45"></div>
           </motion.div>
         )}
       </AnimatePresence>

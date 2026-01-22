@@ -24,6 +24,7 @@ mongoose
   });
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Security middleware
 app.use(securityHeaders);
@@ -55,6 +56,8 @@ app.use((err, req, res, next) => {
     message,
   });
 });
+
+
 
 const PORT = process.env.PORT || 6789;
 app.listen(PORT, () => {
