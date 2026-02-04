@@ -61,24 +61,42 @@ const stripHtml = (html) => {
   return html?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || '';
 };
 
+// Helper function to escape HTML special characters for meta tags
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+};
+
 // Helper function to inject meta tags into HTML
 const injectMetaTags = (html, meta) => {
+  const siteUrl = process.env.SITE_URL || 'https://dailybloggs.com';
+
   const defaults = {
-    title: 'dailybloggs',
-    description: 'Discover thoughtful articles on technology, creativity, and personal growth.',
-    image: '/main-logo.png',
-    url: process.env.SITE_URL || 'https://dailybloggs.com',
-    type: 'website'
+    title: 'DailyBloggs - Stories That Inspire & Educate',
+    description: 'Discover thoughtful articles on technology, creativity, health, and personal growth. Join thousands of readers exploring ideas that matter.',
+    image: `${siteUrl}/main-logo.png`,
+    url: siteUrl,
+    type: 'website',
+    keywords: 'blog, technology, health, education, creative writing, personal growth, news, articles, daily bloggs',
+    author: 'DailyBloggs'
   };
 
   const finalMeta = { ...defaults, ...meta };
 
+  // Escape all values for safe HTML insertion
   return html
-    .replace(/__META_TITLE__/g, finalMeta.title)
-    .replace(/__META_DESCRIPTION__/g, finalMeta.description)
-    .replace(/__META_OG_IMAGE__/g, finalMeta.image)
-    .replace(/__META_OG_URL__/g, finalMeta.url)
-    .replace(/__META_OG_TYPE__/g, finalMeta.type);
+    .replace(/__META_TITLE__/g, escapeHtml(finalMeta.title))
+    .replace(/__META_DESCRIPTION__/g, escapeHtml(finalMeta.description))
+    .replace(/__META_OG_IMAGE__/g, escapeHtml(finalMeta.image))
+    .replace(/__META_OG_URL__/g, escapeHtml(finalMeta.url))
+    .replace(/__META_OG_TYPE__/g, escapeHtml(finalMeta.type))
+    .replace(/__META_KEYWORDS__/g, escapeHtml(finalMeta.keywords))
+    .replace(/__META_AUTHOR__/g, escapeHtml(finalMeta.author));
 };
 
 // Handle post pages with dynamic meta tags
@@ -87,19 +105,28 @@ app.get('/post/:slug', async (req, res) => {
     const indexPath = path.join(__dirname, '../client/dist', 'index.html');
     let html = fs.readFileSync(indexPath, 'utf8');
 
-    // Fetch post data for meta tags
+    // Fetch post data for meta tags (populate author info)
     const post = await Post.findOne({ slug: req.params.slug });
 
     if (post) {
-      const description = stripHtml(post.content).substring(0, 160) + '...';
+      const plainContent = stripHtml(post.content);
+      const description = plainContent.length > 155
+        ? plainContent.substring(0, 155) + '...'
+        : plainContent;
       const siteUrl = process.env.SITE_URL || 'https://dailybloggs.com';
 
+      // Generate keywords from category and title
+      const titleWords = post.title.toLowerCase().split(' ').filter(w => w.length > 3).slice(0, 5);
+      const keywords = [post.category, ...titleWords, 'blog', 'article', 'dailybloggs'].join(', ');
+
       html = injectMetaTags(html, {
-        title: `${post.title} | dailybloggs`,
+        title: `${post.title} - DailyBloggs`,
         description: description,
         image: post.image,
         url: `${siteUrl}/post/${post.slug}`,
-        type: 'article'
+        type: 'article',
+        keywords: keywords,
+        author: 'DailyBloggs'
       });
     } else {
       html = injectMetaTags(html, {});
