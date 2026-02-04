@@ -9,6 +9,11 @@ export default function AboutPage() {
   const [stats, setStats] = useState({ totalPosts: 0, totalUsers: 0 });
   const { currentUser } = useSelector((state) => state.user);
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'About Us - DailyBloggs';
+  }, []);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {

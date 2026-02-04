@@ -52,6 +52,11 @@ export default function CreatePost() {
   const [enhancedContent, setEnhancedContent] = useState(null);
   const [showEnhancedPreview, setShowEnhancedPreview] = useState(false);
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'Create Post - DailyBloggs';
+  }, []);
+
   // Inline AI states
   const [showInlineAi, setShowInlineAi] = useState(false);
   const [inlineAiPosition, setInlineAiPosition] = useState({ top: 0, left: 0 });

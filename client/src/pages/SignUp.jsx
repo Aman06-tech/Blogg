@@ -1,5 +1,5 @@
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
 import { motion } from "framer-motion";
@@ -11,6 +11,11 @@ export default function SignUp() {
   const [validationErrors, setValidationErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'Sign Up - DailyBloggs';
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });

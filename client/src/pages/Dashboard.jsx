@@ -220,6 +220,17 @@ export default function Dashboard() {
     }
   }, [location.search]);
 
+  // Set page title based on tab
+  useEffect(() => {
+    const titles = {
+      profile: 'My Profile - DailyBloggs',
+      posts: 'My Posts - DailyBloggs',
+      users: 'Users - DailyBloggs',
+      bookmarks: 'Bookmarks - DailyBloggs',
+    };
+    document.title = titles[tab] || 'Dashboard - DailyBloggs';
+  }, [tab]);
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 dark:bg-slate-950">
       {/* Sidebar */}

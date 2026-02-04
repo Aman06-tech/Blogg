@@ -13,6 +13,11 @@ export default function HomePage() {
   const [recentPosts, setRecentPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'DailyBloggs - Stories That Inspire & Educate';
+  }, []);
   const [totalPosts, setTotalPosts] = useState(0);
   const [showMore, setShowMore] = useState(true);
   const { currentUser } = useSelector((state) => state.user);

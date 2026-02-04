@@ -1,5 +1,5 @@
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { signInStart, signInSuccess, signInFailure } from "../redux/user/userSlice.js";
@@ -13,6 +13,11 @@ export default function SignIn() {
   const { loading, error: errorMessage } = useSelector(state => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'Sign In - DailyBloggs';
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });

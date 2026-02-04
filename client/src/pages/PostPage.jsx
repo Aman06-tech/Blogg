@@ -72,6 +72,17 @@ export default function PostPage() {
     fetchPost();
   }, [postSlug, currentUser]);
 
+  // Update browser tab title when post loads
+  useEffect(() => {
+    if (post?.title) {
+      document.title = `${post.title} - DailyBloggs`;
+    }
+    // Reset title when leaving the page
+    return () => {
+      document.title = 'DailyBloggs - Stories That Inspire & Educate';
+    };
+  }, [post?.title]);
+
   // Extract headings for table of contents
   useEffect(() => {
     if (post?.content) {
