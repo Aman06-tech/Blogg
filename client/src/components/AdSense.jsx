@@ -6,33 +6,50 @@ export default function AdSense({
   adLayout = null,
   fullWidthResponsive = true,
 }) {
-  const adRef = useRef(null);
-  const [adLoaded, setAdLoaded] = useState(false);
+  const insRef = useRef(null);
+  const [adStatus, setAdStatus] = useState('loading'); // 'loading', 'filled', 'unfilled'
 
   useEffect(() => {
-    const loadAd = () => {
-      try {
-        if (window.adsbygoogle && adRef.current) {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
+    const insElement = insRef.current;
+    if (!insElement) return;
 
-          // Check if ad loaded after a delay
-          setTimeout(() => {
-            if (adRef.current) {
-              const adElement = adRef.current;
-              const hasAd = adElement.getAttribute('data-ad-status') === 'filled' ||
-                           adElement.querySelector('iframe') !== null ||
-                           adElement.clientHeight > 0;
-              setAdLoaded(hasAd);
-            }
-          }, 1000);
+    // Push ad request
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      console.error('AdSense error:', e);
+      setAdStatus('unfilled');
+      return;
+    }
+
+    // Use MutationObserver to detect when ad status changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'data-ad-status') {
+          const status = insElement.getAttribute('data-ad-status');
+          setAdStatus(status === 'filled' ? 'filled' : 'unfilled');
         }
-      } catch (e) {
-        console.error('AdSense error:', e);
-        setAdLoaded(false);
-      }
-    };
+      });
+    });
 
-    loadAd();
+    observer.observe(insElement, { attributes: true });
+
+    // Fallback: check after delay if no mutation occurred
+    const fallbackTimer = setTimeout(() => {
+      const status = insElement.getAttribute('data-ad-status');
+      if (status) {
+        setAdStatus(status === 'filled' ? 'filled' : 'unfilled');
+      } else {
+        // Check if iframe exists (ad loaded without status attribute)
+        const hasIframe = insElement.querySelector('iframe') !== null;
+        setAdStatus(hasIframe ? 'filled' : 'unfilled');
+      }
+    }, 3000);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   // In-article ad style
@@ -41,12 +58,19 @@ export default function AdSense({
     ? { display: 'block', textAlign: 'center' }
     : { display: 'block' };
 
+  // Hide container if ad is unfilled
+  if (adStatus === 'unfilled') {
+    return null;
+  }
+
   return (
     <div
-      ref={adRef}
-      className={`ad-container transition-all duration-300 ${adLoaded ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}
+      className={`ad-container transition-all duration-300 ${
+        adStatus === 'filled' ? 'opacity-100' : 'opacity-50'
+      }`}
     >
       <ins
+        ref={insRef}
         className="adsbygoogle"
         style={adStyle}
         data-ad-client="ca-pub-1205707348582831"

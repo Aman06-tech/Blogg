@@ -32,10 +32,10 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/post/:postSlug" element={<PostPage />} />
 
             {/* Protected Routes - Require Login */}
             <Route element={<PrivateRoute />}>
-              <Route path="/post/:postSlug" element={<PostPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/create-post"  element={<CreatePost />} />
               <Route path="/update-post/:postId"  element={<UpdatePost />} />
