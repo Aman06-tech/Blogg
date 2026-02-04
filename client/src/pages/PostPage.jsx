@@ -16,6 +16,7 @@ import { FaTwitter, FaLinkedin } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import CommentSection from "../components/CommentSection";
 import Avatar from "../components/Avatar";
+import AdSense from "../components/AdSense";
 import { toast } from "react-toastify";
 import DOMPurify from "dompurify";
 
@@ -316,6 +317,15 @@ export default function PostPage() {
               </div>
             )}
 
+            {/* In-Article Ad */}
+            <div className="my-8">
+              <AdSense
+                adSlot="8158947495"
+                adFormat="fluid"
+                adLayout="in-article"
+              />
+            </div>
+
             {/* Article Content */}
             <div
               ref={contentRef}
@@ -336,6 +346,15 @@ export default function PostPage() {
                 prose-img:rounded-lg prose-img:border prose-img:border-slate-200 dark:prose-img:border-slate-800"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post?.content || '') }}
             />
+
+            {/* In-Article Ad after content */}
+            <div className="my-8">
+              <AdSense
+                adSlot="8158947495"
+                adFormat="fluid"
+                adLayout="in-article"
+              />
+            </div>
 
             {/* Article Footer */}
             <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">

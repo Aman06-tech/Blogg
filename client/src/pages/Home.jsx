@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import DOMPurify from "dompurify";
 import Avatar from "../components/Avatar";
+import AdSense from "../components/AdSense";
 
 export default function HomePage() {
   const [recentPosts, setRecentPosts] = useState([]);
@@ -263,6 +264,11 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* Ad Section */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <AdSense />
+      </div>
+
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-6 py-12">
         {loading ? (
@@ -416,6 +422,11 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Ad Section */}
+      <div className="max-w-7xl mx-auto px-6 py-6">
+        <AdSense />
+      </div>
 
       {/* AI Writing Assistant Section */}
       {!searchTerm && !categoryFilter && (
