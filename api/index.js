@@ -62,8 +62,16 @@ const stripHtml = (html) => {
 };
 
 // Helper function to escape HTML special characters for meta tags
-const escapeHtml = (text) => {
+const escapeHtml = (text, isUrl = false) => {
   if (!text) return '';
+  // Don't escape & in URLs as it breaks query parameters
+  if (isUrl) {
+    return text
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
   return text
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
@@ -88,12 +96,12 @@ const injectMetaTags = (html, meta) => {
 
   const finalMeta = { ...defaults, ...meta };
 
-  // Escape all values for safe HTML insertion
+  // Escape all values for safe HTML insertion (URLs need special handling)
   return html
     .replace(/__META_TITLE__/g, escapeHtml(finalMeta.title))
     .replace(/__META_DESCRIPTION__/g, escapeHtml(finalMeta.description))
-    .replace(/__META_OG_IMAGE__/g, escapeHtml(finalMeta.image))
-    .replace(/__META_OG_URL__/g, escapeHtml(finalMeta.url))
+    .replace(/__META_OG_IMAGE__/g, escapeHtml(finalMeta.image, true))
+    .replace(/__META_OG_URL__/g, escapeHtml(finalMeta.url, true))
     .replace(/__META_OG_TYPE__/g, escapeHtml(finalMeta.type))
     .replace(/__META_KEYWORDS__/g, escapeHtml(finalMeta.keywords))
     .replace(/__META_AUTHOR__/g, escapeHtml(finalMeta.author));
