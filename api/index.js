@@ -61,50 +61,34 @@ const stripHtml = (html) => {
   return html?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || '';
 };
 
-// Helper function to escape HTML special characters for meta tags
-const escapeHtml = (text, isUrl = false) => {
-  if (!text) return '';
-  // Don't escape & in URLs as it breaks query parameters
-  if (isUrl) {
-    return text
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-  }
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+// Default meta values (must match index.html exactly for replacement to work)
+const DEFAULT_META = {
+  title: 'DailyBloggs - Stories That Inspire & Educate',
+  description: 'Discover thoughtful articles on technology, creativity, health, and personal growth. Join thousands of readers exploring ideas that matter.',
+  image: 'https://dailybloggs.com/main-logo.png',
+  url: 'https://dailybloggs.com',
+  type: 'website'
 };
 
-// Helper function to inject meta tags into HTML
-const injectMetaTags = (html, meta) => {
-  const siteUrl = process.env.SITE_URL || 'https://dailybloggs.com';
+// Helper function to inject post meta tags into HTML
+const injectPostMeta = (html, post, siteUrl) => {
+  const plainContent = stripHtml(post.content);
+  const description = plainContent.length > 155
+    ? plainContent.substring(0, 155) + '...'
+    : plainContent;
+  const postUrl = `${siteUrl}/post/${post.slug}`;
 
-  const defaults = {
-    title: 'DailyBloggs - Stories That Inspire & Educate',
-    description: 'Discover thoughtful articles on technology, creativity, health, and personal growth. Join thousands of readers exploring ideas that matter.',
-    image: `${siteUrl}/main-logo.png`,
-    url: siteUrl,
-    type: 'website',
-    keywords: 'blog, technology, health, education, creative writing, personal growth, news, articles, daily bloggs',
-    author: 'DailyBloggs'
-  };
-
-  const finalMeta = { ...defaults, ...meta };
-
-  // Escape all values for safe HTML insertion (URLs need special handling)
   return html
-    .replace(/__META_TITLE__/g, escapeHtml(finalMeta.title))
-    .replace(/__META_DESCRIPTION__/g, escapeHtml(finalMeta.description))
-    .replace(/__META_OG_IMAGE__/g, escapeHtml(finalMeta.image, true))
-    .replace(/__META_OG_URL__/g, escapeHtml(finalMeta.url, true))
-    .replace(/__META_OG_TYPE__/g, escapeHtml(finalMeta.type))
-    .replace(/__META_KEYWORDS__/g, escapeHtml(finalMeta.keywords))
-    .replace(/__META_AUTHOR__/g, escapeHtml(finalMeta.author));
+    // Replace title
+    .replace(new RegExp(DEFAULT_META.title, 'g'), `${post.title} - DailyBloggs`)
+    // Replace description
+    .replace(new RegExp(DEFAULT_META.description, 'g'), description)
+    // Replace image
+    .replace(new RegExp(DEFAULT_META.image, 'g'), post.image)
+    // Replace URL
+    .replace(new RegExp(DEFAULT_META.url, 'g'), postUrl)
+    // Replace og:type
+    .replace(/"website"/g, '"article"');
 };
 
 // Handle post pages with dynamic meta tags
@@ -113,31 +97,12 @@ app.get('/post/:slug', async (req, res) => {
     const indexPath = path.join(__dirname, '../client/dist', 'index.html');
     let html = fs.readFileSync(indexPath, 'utf8');
 
-    // Fetch post data for meta tags (populate author info)
+    // Fetch post data for meta tags
     const post = await Post.findOne({ slug: req.params.slug });
 
     if (post) {
-      const plainContent = stripHtml(post.content);
-      const description = plainContent.length > 155
-        ? plainContent.substring(0, 155) + '...'
-        : plainContent;
       const siteUrl = process.env.SITE_URL || 'https://dailybloggs.com';
-
-      // Generate keywords from category and title
-      const titleWords = post.title.toLowerCase().split(' ').filter(w => w.length > 3).slice(0, 5);
-      const keywords = [post.category, ...titleWords, 'blog', 'article', 'dailybloggs'].join(', ');
-
-      html = injectMetaTags(html, {
-        title: `${post.title} - DailyBloggs`,
-        description: description,
-        image: post.image,
-        url: `${siteUrl}/post/${post.slug}`,
-        type: 'article',
-        keywords: keywords,
-        author: 'DailyBloggs'
-      });
-    } else {
-      html = injectMetaTags(html, {});
+      html = injectPostMeta(html, post, siteUrl);
     }
 
     res.send(html);
@@ -149,14 +114,7 @@ app.get('/post/:slug', async (req, res) => {
 
 // SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
-  try {
-    const indexPath = path.join(__dirname, '../client/dist', 'index.html');
-    let html = fs.readFileSync(indexPath, 'utf8');
-    html = injectMetaTags(html, {});
-    res.send(html);
-  } catch (error) {
-    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-  }
+  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
 });
 
 // Error handling middleware
