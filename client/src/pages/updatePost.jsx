@@ -191,6 +191,7 @@ export default function UpdatePost() {
                   <option value="multimedia">Multimedia Blog</option>
                   <option value="climate">Climate Blog</option>
                   <option value="medical">Medical Blog</option>
+                  <option value="sports">Sports</option>
                 </Select>
               </div>
             </div>

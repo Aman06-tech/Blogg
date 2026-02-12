@@ -415,6 +415,7 @@ export default function CreatePost() {
     { value: "climate", label: "Climate & Environment", icon: "🌍" },
     { value: "medical", label: "Health & Medical", icon: "🏥" },
     { value: "multimedia", label: "Multimedia", icon: "🎬" },
+    { value: "sports", label: "Sports", icon: "🏅" },
   ];
 
   return (
@@ -487,13 +488,21 @@ export default function CreatePost() {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   value={formData.title || ''}
                 />
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <p className="text-xs text-slate-500">
                     {formData.title?.length || 0} characters
                     {formData.title?.length > 60 && (
                       <span className="text-amber-500 ml-2">Consider a shorter title for SEO</span>
                     )}
                   </p>
+                  <button
+                    onClick={handleGenerateTitles}
+                    disabled={aiLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all disabled:opacity-50"
+                  >
+                    {aiLoading ? <Spinner size="xs" /> : <HiSparkles className="w-3.5 h-3.5" />}
+                    AI Suggest Titles
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -676,10 +685,47 @@ export default function CreatePost() {
                   )}
                 </div>
 
-                {/* Inline AI hint */}
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <HiSparkles className="w-3 h-3" />
-                  Click the sparkle icon in toolbar or select text for AI tools
+                {/* AI Content Actions */}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mr-1">
+                    <HiSparkles className="w-3 h-3 text-purple-500" />
+                    AI:
+                  </span>
+                  <button
+                    onClick={() => handleAiEnhance('improve')}
+                    disabled={aiLoading || !formData.content || formData.content === '<p><br></p>'}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <HiSparkles className="w-3.5 h-3.5" />
+                    Improve
+                  </button>
+                  <button
+                    onClick={() => handleAiEnhance('grammar')}
+                    disabled={aiLoading || !formData.content || formData.content === '<p><br></p>'}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <HiCheck className="w-3.5 h-3.5" />
+                    Fix Grammar
+                  </button>
+                  <button
+                    onClick={() => handleAiEnhance('expand')}
+                    disabled={aiLoading || !formData.content || formData.content === '<p><br></p>'}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <HiDocumentText className="w-3.5 h-3.5" />
+                    Expand
+                  </button>
+                  <button
+                    onClick={() => handleAiEnhance('summarize')}
+                    disabled={aiLoading || !formData.content || formData.content === '<p><br></p>'}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <HiBookOpen className="w-3.5 h-3.5" />
+                    Summarize
+                  </button>
+                </div>
+                <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
+                  Select text in the editor for inline AI options
                 </p>
               </div>
             </motion.div>
@@ -737,53 +783,6 @@ export default function CreatePost() {
                     </button>
                   ))}
                 </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              {/* AI Assistant Panel - Simplified */}
-              <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl border border-purple-200 dark:border-purple-800 p-4 sm:p-6">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-3">
-                  <HiChip className="w-5 h-5 text-purple-500" />
-                  AI Assistant
-                </h3>
-
-                {/* Inline AI Instructions */}
-                <div className="bg-white/60 dark:bg-slate-800/60 rounded-xl p-3 mb-4">
-                  <div className="flex items-start gap-2">
-                    <HiSparkles className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Inline AI</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Select any text in the editor to see AI options: Improve, Fix, Expand, or Shorten
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Generate Titles - Keep this as it's useful */}
-                <button
-                  onClick={handleGenerateTitles}
-                  disabled={aiLoading}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transition-all text-left disabled:opacity-50"
-                >
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                    <HiLightningBolt className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900 dark:text-white text-sm">Generate Titles</p>
-                    <p className="text-xs text-slate-500">Get AI-suggested headlines</p>
-                  </div>
-                  {aiLoading && <Spinner size="sm" />}
-                </button>
-
-                {aiError && (
-                  <Alert color="failure" className="mt-4 text-sm">{aiError}</Alert>
-                )}
               </div>
             </motion.div>
 
