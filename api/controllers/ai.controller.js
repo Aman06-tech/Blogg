@@ -1,20 +1,45 @@
 import { errorHandler } from "../utils/error.js";
 
-// AI API Configuration - Read at runtime to ensure dotenv has loaded
-const getAiConfig = () => ({
-  apiKey: process.env.AI_API_KEY,
-  apiUrl: process.env.AI_API_URL || "https://api.openai.com/v1/chat/completions",
-  model: process.env.AI_MODEL || "gpt-4o-mini"
-});
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+const callGemini = async (systemPrompt, userPrompt) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY not configured in .env");
+  }
+
+  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: userPrompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 2000,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    console.error("Gemini API Error:", errorData);
+    throw new Error("Gemini API request failed");
+  }
+
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+};
 
 export const enhanceContent = async (req, res, next) => {
   try {
-    const { apiKey, apiUrl, model } = getAiConfig();
-
-    if (!apiKey) {
-      return next(errorHandler(500, "AI API key not configured. Please add AI_API_KEY to your .env file."));
-    }
-
     const { content, enhanceType } = req.body;
 
     if (!content) {
@@ -54,31 +79,7 @@ export const enhanceContent = async (req, res, next) => {
         userPrompt = content;
     }
 
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("AI API Error:", errorData);
-      return next(errorHandler(500, "Failed to process AI request"));
-    }
-
-    const data = await response.json();
-    const enhancedContent = data.choices?.[0]?.message?.content || "";
+    const enhancedContent = await callGemini(systemPrompt, userPrompt);
 
     res.status(200).json({
       success: true,
@@ -93,49 +94,17 @@ export const enhanceContent = async (req, res, next) => {
 
 export const generateTitleSuggestions = async (req, res, next) => {
   try {
-    const { apiKey, apiUrl, model } = getAiConfig();
-
-    if (!apiKey) {
-      return next(errorHandler(500, "AI API key not configured. Please add AI_API_KEY to your .env file."));
-    }
-
     const { content } = req.body;
 
     if (!content) {
       return next(errorHandler(400, "Content is required"));
     }
 
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          {
-            role: "system",
-            content: "You are a creative headline writer. Generate exactly 5 compelling, SEO-friendly blog post titles. Return ONLY the titles, one per line, numbered 1-5. Make them catchy and engaging."
-          },
-          {
-            role: "user",
-            content: `Generate 5 title suggestions for a blog post about:\n\n${content}`
-          }
-        ],
-        max_tokens: 500,
-        temperature: 0.8,
-      }),
-    });
+    const titlesText = await callGemini(
+      "You are a creative headline writer. Generate exactly 5 compelling, SEO-friendly blog post titles. Return ONLY the titles, one per line, numbered 1-5. Make them catchy and engaging.",
+      `Generate 5 title suggestions for a blog post about:\n\n${content}`
+    );
 
-    if (!response.ok) {
-      return next(errorHandler(500, "Failed to generate titles"));
-    }
-
-    const data = await response.json();
-    const titlesText = data.choices?.[0]?.message?.content || "";
-
-    // Parse titles from the response
     const titles = titlesText
       .split('\n')
       .filter(line => line.trim())
