@@ -1,6 +1,6 @@
 import { Footer } from "flowbite-react";
 import { Link } from "react-router-dom";
-import { BsFacebook, BsGithub, BsInstagram, BsLinkedin, BsTwitter } from "react-icons/bs";
+import { BsFacebook, BsInstagram, BsTwitter } from "react-icons/bs";
 
 export default function FooterCom() {
   return (
@@ -29,16 +29,6 @@ export default function FooterCom() {
               <h3 className="text-slate-900 dark:text-white font-semibold text-sm uppercase tracking-wider mb-4">About</h3>
               <ul className="space-y-3">
                 <li>
-                  <a
-                    href="https://github.com/Aman06-tech"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm"
-                  >
-                    GitHub
-                  </a>
-                </li>
-                <li>
                   <Link
                     to="/about"
                     className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm"
@@ -52,23 +42,13 @@ export default function FooterCom() {
               <h3 className="text-slate-900 dark:text-white font-semibold text-sm uppercase tracking-wider mb-4">Follow Us</h3>
               <ul className="space-y-3">
                 <li>
-                  <a
-                    href="https://github.com/Aman06-tech"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm"
-                  >
-                    GitHub
+                  <a href="#" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm">
+                    Facebook
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="https://www.linkedin.com/in/amanpal06"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm"
-                  >
-                    LinkedIn
+                  <a href="#" className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-sm">
+                    Instagram
                   </a>
                 </li>
               </ul>
@@ -106,12 +86,6 @@ export default function FooterCom() {
             </a>
             <a href="#" className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all hover:scale-110">
               <BsTwitter size={18} />
-            </a>
-            <a href="https://github.com/Aman06-tech" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all hover:scale-110">
-              <BsGithub size={18} />
-            </a>
-            <a href="https://www.linkedin.com/in/amanpal06" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all hover:scale-110">
-              <BsLinkedin size={18} />
             </a>
           </div>
         </div>

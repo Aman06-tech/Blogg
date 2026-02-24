@@ -1,6 +1,7 @@
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import { errorHandler } from "../utils/error.js";
+import { notifySearchEngines } from "../utils/searchEngine.js";
 
 export const create = async (req, res, next) => {
   // All authenticated users can create posts
@@ -19,6 +20,13 @@ export const create = async (req, res, next) => {
   });
   try {
     const savedPost = await newPost.save();
+
+    // Notify search engines about the new post
+    const siteUrl = process.env.SITE_URL || 'https://dailybloggs.com';
+    notifySearchEngines(siteUrl).catch(err =>
+      console.error('Failed to notify search engines:', err)
+    );
+
     res.status(201).json(savedPost);
   } catch (error) {
     next(error);
@@ -107,6 +115,13 @@ export const updatepost = async (req, res, next) =>{
            image:req.body.image,
          }},{new:true}
       )
+
+      // Notify search engines about the updated post
+      const siteUrl = process.env.SITE_URL || 'https://dailybloggs.com';
+      notifySearchEngines(siteUrl).catch(err =>
+        console.error('Failed to notify search engines:', err)
+      );
+
       res.status(200).json({message: 'Post updated successfully', updatedPost});
     } catch (error) {
       next(error);

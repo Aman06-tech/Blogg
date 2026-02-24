@@ -127,6 +127,27 @@ const injectPostMeta = (html, post, siteUrl) => {
     .replace('</head>', `<script type="application/ld+json">${jsonLd}</script>\n</head>`);
 };
 
+// robots.txt - tells search engines where to find the sitemap
+app.get('/robots.txt', (req, res) => {
+  const siteUrl = process.env.SITE_URL || 'https://dailybloggs.com';
+  const robotsTxt = `# DailyBloggs robots.txt
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /create-post
+Disallow: /update-post
+
+# Sitemap location
+Sitemap: ${siteUrl}/sitemap.xml
+
+# Crawl-delay (optional - helps prevent server overload)
+Crawl-delay: 1`;
+
+  res.set('Content-Type', 'text/plain');
+  res.send(robotsTxt);
+});
+
 // Dynamic sitemap.xml
 app.get('/sitemap.xml', async (req, res) => {
   try {
