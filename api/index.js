@@ -1,8 +1,12 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
@@ -17,12 +21,19 @@ mongoose
 
 const app = express();
 app.use(express.json());
-app.listen(3000, () => {
-  console.log("Server is running on port 3000 ");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server is running on port ${PORT}`);
 });
 
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
+
+app.use(express.static(path.join(__dirname, "..", "client", "dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "client", "dist", "index.html"));
+});
 
 app.use((err, req,res,next)=>{
   const statusCode = err.statusCode || 500;
