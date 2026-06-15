@@ -1,53 +1,397 @@
-import { Button, Navbar, TextInput } from "flowbite-react";
-import { Link, useLocation } from "react-router-dom";
-import { AiOutlineSearch } from "react-icons/ai";
-import { FaMoon } from "react-icons/fa";
+import { Button, Dropdown, Navbar } from "flowbite-react";
+import Avatar from "./Avatar";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AiOutlineSearch, AiOutlineClose } from "react-icons/ai";
+import { FaMoon, FaSun } from "react-icons/fa";
+import { HiUser, HiLogout, HiViewGrid, HiPencil, HiHome, HiInformationCircle, HiMenu, HiX } from "react-icons/hi";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleTheme } from "../redux/theme/themeSlice.js";
+import { signoutSuccess } from "../redux/user/userSlice.js";
+import { useState, useRef, useEffect } from "react";
 
 export default function Header() {
   const path = useLocation().pathname;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const CurrentUser = useSelector((state) => state.user);
+  const user = CurrentUser.currentUser;
+  const { theme } = useSelector((state) => state.theme);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const searchInputRef = useRef(null);
+
+  const handleSignout = async () => {
+    try {
+      const res = await fetch('/api/user/signout', {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data.message);
+      } else {
+        dispatch(signoutSuccess());
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/?search=${searchTerm}`);
+      setIsSearchOpen(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    searchInputRef.current?.focus();
+  };
+
+  const toggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+  };
+
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
+  // Close search and mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setIsSearchOpen(false);
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
   return (
-    <Navbar className="border-b-2">
+    <Navbar className="border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 bg-white dark:bg-slate-900 shadow-sm">
       <Link
         to="/"
-        className="self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white"
+        className="self-center transition-transform hover:scale-105"
       >
-        <span className="px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white">
-          Aman`s Blogg
+        <span className="text-xl sm:text-2xl font-bold">
+          <span className="text-blue-600">daily</span>
+          <span className="text-slate-700 dark:text-slate-200 relative">
+            bloggs
+            <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-orange-500 rounded-full"></span>
+          </span>
         </span>
       </Link>
-      <form>
-        <TextInput
-          type="text"
-          placeholder="Search"
-          rightIcon={AiOutlineSearch}
-          className="hidden lg:inline"
-        />
+
+      {/* Desktop Search Bar */}
+      <form onSubmit={handleSearchSubmit} className="hidden lg:flex flex-1 max-w-md mx-8">
+        <div className="relative w-full group">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+            <AiOutlineSearch className="w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search articles..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-11 pr-10 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-full text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-700 transition-all"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            >
+              <AiOutlineClose className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </form>
-      <Button className="w-12 h-10" color="gray">
-        <AiOutlineSearch />
+
+      {/* Mobile Search Toggle Button */}
+      <Button
+        className="w-10 h-10 lg:hidden"
+        color="gray"
+        pill
+        onClick={toggleSearch}
+      >
+        <AiOutlineSearch className="w-5 h-5" />
       </Button>
+
       <div className="flex gap-2 md:order-2">
-        <Button className="w-12 h-10 hidden sm:inline" color="gray" pill>
-          <FaMoon />
-        </Button>
-        <Link to="sign-in">
-          <Button gradientDuoTone="purpleToBlue" outline pill>
-            Sign In
-          </Button>
-        </Link>
-        <Navbar.Toggle />
+        <button
+          className="w-10 h-10 hidden sm:flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-110 hover:rotate-12"
+          onClick={() => dispatch(toggleTheme())}
+          aria-label="Toggle dark mode"
+        >
+          {theme === 'light' ? (
+            <FaSun className="w-5 h-5 text-amber-500 transition-transform duration-300" />
+          ) : (
+            <FaMoon className="w-5 h-5 text-blue-400 transition-transform duration-300" />
+          )}
+        </button>
+        {user ? (
+          <Dropdown
+            arrowIcon={false}
+            inline
+            label={
+              <Avatar
+                src={user.profilePicture}
+                name={user.username}
+                alt={user.username}
+                size="md"
+                status="online"
+                hoverable
+              />
+            }
+          >
+            <Dropdown.Header>
+              <span className="block text-sm font-semibold text-slate-900 dark:text-white">@{user.username}</span>
+              <span className="block text-sm font-medium truncate text-slate-500">
+                {user.email}
+              </span>
+            </Dropdown.Header>
+            <Link to="/dashboard?tab=profile">
+              <Dropdown.Item icon={HiUser}>
+                Profile
+              </Dropdown.Item>
+            </Link>
+            <Link to="/dashboard">
+              <Dropdown.Item icon={HiViewGrid}>
+                Dashboard
+              </Dropdown.Item>
+            </Link>
+            <Link to="/create-post">
+              <Dropdown.Item icon={HiPencil}>
+                Create Post
+              </Dropdown.Item>
+            </Link>
+            <Dropdown.Divider />
+            <Dropdown.Item onClick={handleSignout} icon={HiLogout} className="text-red-600">
+              Sign Out
+            </Dropdown.Item>
+          </Dropdown>
+        ) : (
+          <Link to="/sign-in">
+            <Button color="dark" pill className="transition-transform hover:scale-105">
+              Sign In
+            </Button>
+          </Link>
+        )}
+        {/* Custom Mobile Menu Toggle */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200"
+          aria-label="Toggle mobile menu"
+        >
+          {isMobileMenuOpen ? (
+            <HiX className="w-6 h-6" />
+          ) : (
+            <HiMenu className="w-6 h-6" />
+          )}
+        </button>
       </div>
-      <Navbar.Collapse>
-        <Navbar.Link active={path === "/"} as={"div"}>
-          <Link to="/">Home</Link>
-        </Navbar.Link>
-        <Navbar.Link active={path === "/about"} as={"div"}>
-          <Link to="/about">About</Link>
-        </Navbar.Link>
-        <Navbar.Link active={path === "/projects"} as={"div"}>
-          <Link to="/projects">Projects</Link>
-        </Navbar.Link>
-      </Navbar.Collapse>
+
+      {/* Desktop Navigation */}
+      <div className="hidden md:flex md:items-center md:gap-6">
+        <Link
+          to="/"
+          className={`font-medium transition-colors ${path === "/" ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"}`}
+        >
+          Home
+        </Link>
+        <Link
+          to="/about"
+          className={`font-medium transition-colors ${path === "/about" ? "text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400"}`}
+        >
+          About
+        </Link>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <div className={`md:hidden fixed top-0 right-0 z-50 h-full w-72 bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* Menu Header */}
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+          <span className="text-lg font-bold">
+            <span className="text-blue-600">daily</span>
+            <span className="text-slate-700 dark:text-slate-200">bloggs</span>
+          </span>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <HiX className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Menu Items */}
+        <nav className="p-4 space-y-2">
+          <Link
+            to="/"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${path === "/" ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+          >
+            <HiHome className="w-5 h-5" />
+            Home
+          </Link>
+          <Link
+            to="/about"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${path === "/about" ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+          >
+            <HiInformationCircle className="w-5 h-5" />
+            About
+          </Link>
+
+          {/* Divider */}
+          <div className="my-4 border-t border-slate-200 dark:border-slate-700" />
+
+          {/* Theme Toggle */}
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+          >
+            {theme === 'light' ? (
+              <>
+                <FaMoon className="w-5 h-5 text-blue-500" />
+                Dark Mode
+              </>
+            ) : (
+              <>
+                <FaSun className="w-5 h-5 text-amber-500" />
+                Light Mode
+              </>
+            )}
+          </button>
+
+          {/* User Actions */}
+          {user && (
+            <>
+              <div className="my-4 border-t border-slate-200 dark:border-slate-700" />
+              <Link
+                to="/dashboard?tab=profile"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <HiUser className="w-5 h-5" />
+                Profile
+              </Link>
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <HiViewGrid className="w-5 h-5" />
+                Dashboard
+              </Link>
+              <Link
+                to="/create-post"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              >
+                <HiPencil className="w-5 h-5" />
+                Create Post
+              </Link>
+            </>
+          )}
+        </nav>
+
+        {/* Bottom Section */}
+        {user ? (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+            <div className="flex items-center gap-3 mb-3">
+              <Avatar
+                src={user.profilePicture}
+                name={user.username}
+                size="sm"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">@{user.username}</p>
+                <p className="text-xs text-slate-500 truncate">{user.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                handleSignout();
+                setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition-all"
+            >
+              <HiLogout className="w-5 h-5" />
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-700">
+            <Link
+              to="/sign-in"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-700 transition-all"
+            >
+              Sign In
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Search Overlay */}
+      {isSearchOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-white dark:bg-slate-900">
+          <div className="flex items-center gap-3 p-4 border-b border-slate-200 dark:border-slate-700">
+            <button
+              onClick={toggleSearch}
+              className="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+            >
+              <AiOutlineClose className="w-6 h-6" />
+            </button>
+            <form onSubmit={handleSearchSubmit} className="flex-1">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                  <AiOutlineSearch className="w-5 h-5 text-slate-400" />
+                </div>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search articles..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 bg-slate-100 dark:bg-slate-800 border-0 rounded-xl text-slate-900 dark:text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 text-lg"
+                  autoFocus
+                />
+              </div>
+            </form>
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Press Enter to search or Escape to close
+            </p>
+          </div>
+        </div>
+      )}
     </Navbar>
   );
 }
