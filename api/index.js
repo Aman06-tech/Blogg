@@ -62,6 +62,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running!' });
 });
 
+// Diagnostic — remove after debugging
+app.get('/api/debug-fs', (req, res) => {
+  const distPath = path.join(__dirname, '../client/dist');
+  const assetsPath = path.join(distPath, 'assets');
+  let distFiles = [], assetFiles = [];
+  try { distFiles = fs.readdirSync(distPath); } catch(e) { distFiles = ['ERR: ' + e.message]; }
+  try { assetFiles = fs.readdirSync(assetsPath); } catch(e) { assetFiles = ['ERR: ' + e.message]; }
+  res.json({ __dirname, distPath, distFiles, assetFiles });
+});
+
 // Helper function to strip HTML tags and get plain text
 const stripHtml = (html) => {
   return html?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || '';
