@@ -40,7 +40,14 @@ app.use(cookieParser());
 app.use(sanitizeInput);
 
 // Serve static files before routes so assets never hit the catch-all
-app.use(express.static(path.join(__dirname, '../client/dist')));
+// index.html must not be cached so browsers always get the latest asset hashes
+app.use(express.static(path.join(__dirname, '../client/dist'), {
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('index.html')) {
+      res.setHeader('Cache-Control', 'no-store');
+    }
+  }
+}));
 
 // Routes
 app.use("/api/user", userRoutes);
