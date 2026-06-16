@@ -92,10 +92,13 @@ export const securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://pagead2.googlesyndication.com", "https://www.googletagmanager.com"],
+      scriptSrcElem: ["'self'", "'unsafe-inline'", "https://pagead2.googlesyndication.com", "https://www.googletagmanager.com", "https://googleads.g.doubleclick.net"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "http://localhost:*", "ws://localhost:*"],
+      connectSrc: ["'self'", "http://localhost:*", "ws://localhost:*", "https://www.dailybloggs.in", "https://firestore.googleapis.com", "https://identitytoolkit.googleapis.com"],
+      frameSrc: ["'self'", "https://googleads.g.doubleclick.net", "https://tpc.googlesyndication.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
     },
   },
   crossOriginEmbedderPolicy: false,
