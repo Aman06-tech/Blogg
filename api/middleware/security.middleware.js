@@ -117,6 +117,8 @@ export const corsOptions = {
       'http://localhost:5174',
       'http://localhost:3000',
       'http://localhost:3001',
+      'https://www.dailybloggs.in',
+      'https://dailybloggs.in',
       process.env.FRONTEND_URL
     ].filter(Boolean);
     

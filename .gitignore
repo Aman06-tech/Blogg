@@ -9,8 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist-ssr
-# Allow client/dist for production deployment
-!client/dist
+# Allow api/public (Vite build output) for production deployment
+!api/public
 *.local
 
 # Editor directories and files

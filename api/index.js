@@ -39,9 +39,8 @@ app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(sanitizeInput);
 
-// Serve static files before routes so assets never hit the catch-all
-// index.html must not be cached so browsers always get the latest asset hashes
-app.use(express.static(path.join(__dirname, '../client/dist'), {
+// Serve static files — public/ lives inside api/ so Railpack always includes it
+app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders(res, filePath) {
     if (filePath.endsWith('index.html')) {
       res.setHeader('Cache-Control', 'no-store');
@@ -198,7 +197,7 @@ app.get('/sitemap.xml', async (req, res) => {
 // Handle post pages with dynamic meta tags
 app.get('/post/:slug', async (req, res) => {
   try {
-    const indexPath = path.join(__dirname, '../client/dist', 'index.html');
+    const indexPath = path.join(__dirname, 'public', 'index.html');
     let html = fs.readFileSync(indexPath, 'utf8');
 
     // Fetch post data for meta tags
@@ -212,13 +211,13 @@ app.get('/post/:slug', async (req, res) => {
     res.send(html);
   } catch (error) {
     console.error('Error serving post page:', error);
-    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
   }
 });
 
 // SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Error handling middleware
