@@ -2,13 +2,7 @@ import { Alert, Button, Modal, TextInput, Label } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from 'react-router-dom';
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { app } from "../firebase.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import {
@@ -84,37 +78,27 @@ export default function DashProfile() {
   }, [imageFile]);
 
   const uploadImage = async () => {
-    setImageFileUploading(true);
-    setImageFileUploadError(null);
-    const storage = getStorage(app);
-    const fileName = new Date().getTime() + imageFile.name;
-    const storageRef = ref(storage, fileName);
-    const uploadTask = uploadBytesResumable(storageRef, imageFile);
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setimageFileUploadProgress(progress.toFixed(0));
-      },
-      // eslint-disable-next-line no-unused-vars
-      (error) => {
-        setImageFileUploadError(
-          "Could not upload image (file must be less than 2MB)"
-        );
-        setimageFileUploadProgress(null);
-        setimageFile(null);
-        setimageFileUrl(null);
-        setImageFileUploading(false);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setimageFileUrl(downloadURL);
-          setFormData({ ...formData, profilePicture: downloadURL });
-          setImageFileUploading(false);
-        });
-      }
-    );
+    try {
+      setImageFileUploading(true);
+      setImageFileUploadError(null);
+      setimageFileUploadProgress("0");
+      const downloadURL = await uploadToCloudinary(
+        imageFile,
+        setimageFileUploadProgress
+      );
+      setimageFileUploadProgress(null);
+      setimageFileUrl(downloadURL);
+      setFormData({ ...formData, profilePicture: downloadURL });
+      setImageFileUploading(false);
+    } catch (error) {
+      setImageFileUploadError(
+        error.message || "Could not upload image (file must be less than 2MB)"
+      );
+      setimageFileUploadProgress(null);
+      setimageFile(null);
+      setimageFileUrl(null);
+      setImageFileUploading(false);
+    }
   };
 
   const handleChange = (e) => {

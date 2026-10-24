@@ -19,15 +19,50 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
-// Simple MongoDB connection
-mongoose
-  .connect(process.env.MONGO)
-  .then(() => {
-    console.log("✅ MongoDB is connected successfully");
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection failed:", err.message);
-  });
+// MongoDB connection.
+//
+// On a serverless host every cold start runs this module again, so the
+// connection is cached on globalThis and reused across invocations that land on
+// the same warm instance. Without this, each invocation opens its own
+// connection and an Atlas M0 (500 connection cap) is exhausted under load.
+const globalForMongoose = globalThis;
+globalForMongoose._mongooseCache = globalForMongoose._mongooseCache || {
+  conn: null,
+  promise: null,
+};
+
+const connectDB = async () => {
+  const cache = globalForMongoose._mongooseCache;
+  if (cache.conn) return cache.conn;
+
+  if (!cache.promise) {
+    if (!process.env.MONGO) {
+      throw new Error("MONGO connection string is not configured");
+    }
+    cache.promise = mongoose
+      .connect(process.env.MONGO, {
+        // Fail fast instead of buffering a query until it times out — the
+        // request middleware below guarantees we are connected first.
+        bufferCommands: false,
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 10000,
+      })
+      .then((m) => {
+        console.log("✅ MongoDB is connected successfully");
+        return m;
+      })
+      .catch((err) => {
+        // Clear the cached promise so the next request retries rather than
+        // reusing a permanently rejected one.
+        cache.promise = null;
+        console.error("❌ MongoDB connection failed:", err.message);
+        throw err;
+      });
+  }
+
+  cache.conn = await cache.promise;
+  return cache.conn;
+};
 
 const app = express();
 app.set("trust proxy", 1);
@@ -47,6 +82,21 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
   }
 }));
+
+// Ensure the database is connected before any handler runs. On a warm
+// instance this resolves immediately from cache.
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(503).json({
+      success: false,
+      statusCode: 503,
+      message: "Database unavailable. Please try again shortly.",
+    });
+  }
+});
 
 // Routes
 app.use("/api/user", userRoutes);
@@ -231,7 +281,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-});
+// Vercel imports this module and drives the exported app itself; calling
+// listen() there would bind a port that nothing routes to. Everywhere else
+// (local dev, Railway) we start a real server.
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server is running on port ${PORT}`);
+  });
+}
+
+export default app;

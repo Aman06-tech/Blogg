@@ -5,6 +5,7 @@ import { Spinner } from "flowbite-react";
 import { HiBookmark, HiClock, HiTrash, HiExternalLink } from "react-icons/hi";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
+import { handleImageError } from "../utils/imageFallback";
 
 export default function DashBookmarks() {
   const { currentUser } = useSelector((state) => state.user);
@@ -135,6 +136,7 @@ export default function DashBookmarks() {
                   <Link to={`/post/${post.slug}`} className="sm:w-48 flex-shrink-0">
                     <img
                       src={post.image}
+                      onError={handleImageError}
                       alt={post.title}
                       className="w-full h-40 sm:h-full object-cover"
                     />

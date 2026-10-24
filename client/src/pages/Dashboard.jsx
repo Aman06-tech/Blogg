@@ -7,6 +7,7 @@ import DashPosts from "../components/DashPosts.jsx";
 import DashUsers from "../components/DashUsers.jsx";
 import DashBookmarks from "../components/DashBookmarks.jsx";
 import { motion } from "framer-motion";
+import { handleImageError } from "../utils/imageFallback";
 import {
   HiDocumentText,
   HiUser,
@@ -173,6 +174,7 @@ function DashboardHome() {
                 <Link key={post._id} to={`/post/${post.slug}`} className="flex items-center gap-4 p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                   <img
                     src={post.image}
+                    onError={handleImageError}
                     alt={post.title}
                     className="w-16 h-12 object-cover rounded-lg"
                   />

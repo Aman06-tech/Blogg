@@ -7,7 +7,9 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import DOMPurify from "dompurify";
 import Avatar from "../components/Avatar";
-import AdSense from "../components/AdSense";
+// AdSense disabled for Vercel Hobby deploy (non-commercial plan). Re-enable by uncommenting.
+// import AdSense from "../components/AdSense";
+import { handleImageError } from "../utils/imageFallback";
 
 export default function HomePage() {
   const [recentPosts, setRecentPosts] = useState([]);
@@ -180,6 +182,7 @@ export default function HomePage() {
                         <div className="relative h-64 md:h-80 overflow-hidden">
                           <img
                             src={featuredPost.image}
+                            onError={handleImageError}
                             alt={featuredPost.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -269,10 +272,11 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Ad Section */}
+      {/* Ad Section — AdSense disabled for Vercel Hobby deploy (non-commercial plan). Re-enable by uncommenting.
       <div className="max-w-7xl mx-auto px-6 py-6">
         <AdSense />
       </div>
+      */}
 
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-6 py-12">
@@ -313,6 +317,7 @@ export default function HomePage() {
                         <div className="relative h-52 overflow-hidden">
                           <img
                             src={post.image}
+                            onError={handleImageError}
                             alt={post.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                           />
@@ -428,10 +433,11 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* Ad Section */}
+      {/* Ad Section — AdSense disabled for Vercel Hobby deploy (non-commercial plan). Re-enable by uncommenting.
       <div className="max-w-7xl mx-auto px-6 py-6">
         <AdSense />
       </div>
+      */}
 
       {/* AI Writing Assistant Section */}
       {!searchTerm && !categoryFilter && (

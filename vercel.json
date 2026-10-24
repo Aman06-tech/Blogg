@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["api/public/**"]
+      }
+    },
+    {
+      "src": "api/public/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/assets/(.*)", "dest": "/api/public/assets/$1" },
+    { "src": "/main-logo.png", "dest": "/api/public/main-logo.png" },
+    { "src": "/vite.svg", "dest": "/api/public/vite.svg" },
+    { "src": "/robots.txt", "dest": "/api/public/robots.txt" },
+    { "src": "/(.*)", "dest": "/api/index.js" }
+  ]
+}

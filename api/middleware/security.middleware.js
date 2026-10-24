@@ -96,7 +96,7 @@ export const securityHeaders = helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://pagead2.googlesyndication.com", "https://www.googletagmanager.com"],
       scriptSrcElem: ["'self'", "'unsafe-inline'", "https://pagead2.googlesyndication.com", "https://www.googletagmanager.com", "https://googleads.g.doubleclick.net"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "http://localhost:*", "ws://localhost:*", "https://www.dailybloggs.in", "https://firestore.googleapis.com", "https://identitytoolkit.googleapis.com"],
+      connectSrc: ["'self'", "http://localhost:*", "ws://localhost:*", "https://www.dailybloggs.in", "https://firestore.googleapis.com", "https://identitytoolkit.googleapis.com", "https://api.cloudinary.com"],
       frameSrc: ["'self'", "https://googleads.g.doubleclick.net", "https://tpc.googlesyndication.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
     },

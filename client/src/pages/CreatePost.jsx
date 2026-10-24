@@ -1,14 +1,8 @@
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
 import { Alert, Button, FileInput, Select, TextInput, Spinner, Modal } from "flowbite-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { app } from "../firebase";
+import { uploadToCloudinary } from "../utils/cloudinary";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -90,32 +84,14 @@ export default function CreatePost() {
         return;
       }
       setImageUploadError(null);
-      const storage = getStorage(app);
-      const fileName = new Date().getTime() + "-" + file.name;
-      const storageRef = ref(storage, fileName);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setImageUploadProgress(progress.toFixed(0));
-        },
-        (error) => {
-          setImageUploadError("Upload failed. Please try again.");
-          setImageUploadProgress(null);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageUploadProgress(null);
-            setImageUploadError(null);
-            setFormData({ ...formData, image: downloadURL });
-            toast.success("Image uploaded successfully!");
-          });
-        }
-      );
+      setImageUploadProgress("0");
+      const downloadURL = await uploadToCloudinary(file, setImageUploadProgress);
+      setImageUploadProgress(null);
+      setImageUploadError(null);
+      setFormData({ ...formData, image: downloadURL });
+      toast.success("Image uploaded successfully!");
     } catch (error) {
-      setImageUploadError("Image upload failed");
+      setImageUploadError(error.message || "Image upload failed");
       setImageUploadProgress(null);
       console.log(error);
     }

@@ -16,9 +16,11 @@ import { FaTwitter, FaLinkedin } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import CommentSection from "../components/CommentSection";
 import Avatar from "../components/Avatar";
-import AdSense from "../components/AdSense";
+// AdSense disabled for Vercel Hobby deploy (non-commercial plan). Re-enable by uncommenting.
+// import AdSense from "../components/AdSense";
 import { toast } from "react-toastify";
 import DOMPurify from "dompurify";
+import { handleImageError } from "../utils/imageFallback";
 
 export default function PostPage() {
   const { postSlug } = useParams();
@@ -322,13 +324,14 @@ export default function PostPage() {
               <div className="mb-8 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
                 <img
                   src={post.image}
+                  onError={handleImageError}
                   alt={post.title}
                   className="w-full h-auto object-cover"
                 />
               </div>
             )}
 
-            {/* In-Article Ad */}
+            {/* In-Article Ad — AdSense disabled for Vercel Hobby deploy (non-commercial plan). Re-enable by uncommenting.
             <div className="my-8">
               <AdSense
                 adSlot="8158947495"
@@ -336,6 +339,7 @@ export default function PostPage() {
                 adLayout="in-article"
               />
             </div>
+            */}
 
             {/* Article Content */}
             <div
@@ -358,7 +362,7 @@ export default function PostPage() {
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post?.content || '') }}
             />
 
-            {/* In-Article Ad after content */}
+            {/* In-Article Ad after content — AdSense disabled for Vercel Hobby deploy (non-commercial plan). Re-enable by uncommenting.
             <div className="my-8">
               <AdSense
                 adSlot="8158947495"
@@ -366,6 +370,7 @@ export default function PostPage() {
                 adLayout="in-article"
               />
             </div>
+            */}
 
             {/* Article Footer */}
             <footer className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">

@@ -14,6 +14,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { motion } from "framer-motion";
+import { handleImageError } from "../utils/imageFallback";
 
 export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
@@ -208,6 +209,7 @@ export default function DashPosts() {
                   <Link to={`/post/${post.slug}`} className="sm:w-48 h-32 sm:h-auto flex-shrink-0">
                     <img
                       src={post.image}
+                      onError={handleImageError}
                       alt={post.title}
                       className="w-full h-full object-cover"
                     />

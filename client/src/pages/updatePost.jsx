@@ -1,14 +1,8 @@
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
 import { Alert, Button, FileInput, Select, TextInput, Label, Spinner } from "flowbite-react";
 import { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { app } from "../firebase";
+import { uploadToCloudinary } from "../utils/cloudinary";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { useNavigate, useParams } from "react-router-dom";
@@ -67,31 +61,13 @@ export default function UpdatePost() {
         return;
       }
       setImageUploadError(null);
-      const storage = getStorage(app);
-      const fileName = new Date().getTime() + "-" + file.name;
-      const storageRef = ref(storage, fileName);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setImageUploadProgress(progress.toFixed(0));
-        },
-        (error) => {
-          setImageUploadError(error);
-          setImageUploadProgress(null);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageUploadProgress(null);
-            setImageUploadError(null);
-            setFormData({ ...formData, image: downloadURL });
-          });
-        }
-      );
+      setImageUploadProgress("0");
+      const downloadURL = await uploadToCloudinary(file, setImageUploadProgress);
+      setImageUploadProgress(null);
+      setImageUploadError(null);
+      setFormData({ ...formData, image: downloadURL });
     } catch (error) {
-      setImageUploadError("Image upload failed");
+      setImageUploadError(error.message || "Image upload failed");
       setImageUploadProgress(null);
       console.log(error);
     }
