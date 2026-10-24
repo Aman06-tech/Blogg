@@ -102,6 +102,14 @@ export const securityHeaders = helmet({
     },
   },
   crossOriginEmbedderPolicy: false,
+  // helmet defaults COOP to "same-origin", which puts the Google sign-in popup
+  // in a separate browsing context group and cuts the window.opener link that
+  // signInWithPopup posts its result back through. Firebase cannot tell that
+  // apart from the user closing the window, so it reports
+  // auth/popup-closed-by-user. "same-origin-allow-popups" keeps this document
+  // isolated from anything that opens it while still allowing popups we open
+  // to talk back.
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
 });
 
 // MongoDB injection prevention
