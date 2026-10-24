@@ -5,6 +5,7 @@ import { app } from "../firebase.js";
 import { signInSuccess } from "../redux/user/userSlice.js";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 
 export default function OAuth() {
@@ -29,9 +30,23 @@ export default function OAuth() {
         if (res.ok){
             dispatch(signInSuccess(data.user))
             navigate('/')
+        } else {
+            toast.error(data.message || 'Sign-in failed on the server.')
         }
          } catch (error) {
-            console.log(error);
+            // Previously this only console.log'd, so any failure left the
+            // button looking dead. Surface the real reason instead.
+            console.error('Google sign-in failed:', error)
+            const code = error?.code || ''
+            const messages = {
+                'auth/unauthorized-domain': 'This domain is not authorised in Firebase. Add it under Authentication > Settings > Authorized domains.',
+                'auth/popup-blocked': 'Your browser blocked the sign-in popup. Allow popups for this site and try again.',
+                'auth/popup-closed-by-user': 'Sign-in was cancelled.',
+                'auth/cancelled-popup-request': 'Sign-in was cancelled.',
+                'auth/network-request-failed': 'Network error reaching Google. Check your connection and try again.',
+                'auth/operation-not-allowed': 'Google sign-in is not enabled for this Firebase project.',
+            }
+            toast.error(messages[code] || `Google sign-in failed${code ? ` (${code})` : ''}. See console for details.`)
          }
     }
   return (
