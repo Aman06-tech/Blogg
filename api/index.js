@@ -258,16 +258,36 @@ app.get('/post/:slug', async (req, res) => {
       html = injectPostMeta(html, post, siteUrl);
     }
 
-    res.send(html);
+    sendIndexHtml(res, html);
   } catch (error) {
     console.error('Error serving post page:', error);
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    sendIndexHtml(res);
   }
 });
 
+// index.html must never be cached. Express derives its weak ETag from file
+// size + mtime, Vercel pins mtime to a fixed epoch, and index.html is always
+// the same byte length — so the ETag stays identical across deploys even though
+// the hashed asset it points at changed. Browsers would then revalidate, get a
+// 304 forever, and keep requesting a bundle that no longer exists.
+const sendIndexHtml = (res, html) => {
+  res.setHeader("Cache-Control", "no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  if (html !== undefined) {
+    res.type("html").send(html);
+  } else {
+    res.sendFile(path.join(__dirname, "public", "index.html"), {
+      etag: false,
+      lastModified: false,
+      headers: { "Cache-Control": "no-store, must-revalidate" },
+    });
+  }
+};
+
 // SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  sendIndexHtml(res);
 });
 
 // Error handling middleware
